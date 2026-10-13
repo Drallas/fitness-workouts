@@ -1,24 +1,43 @@
 import { buildFit, buildWorkoutFit } from "./fit.js";
+import { renderShare, SHARE_FORMATS } from "./share.js";
 
 // Pas geladen bij het exporteren, zodat de sets ook renderen als de CDN niet bereikbaar is.
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.217.0/src/index.js";
 let sdkPromise = null;
 const loadSdk = () => (sdkPromise ??= import(SDK_URL));
-import { renderShare, SHARE_FORMATS } from "./share.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const fmtTime = (ms) => new Date(ms).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
 const fmtSec = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+const fmtNum = (n) => String(n).replace(".", ",");
 
 let W; // workout JSON
 let KEY;
-let state = { startMs: null, vals: {}, done: {} };
+let state = { startMs: null, vals: {}, done: {}, pauses: [] };
 const setIndex = {}; // setId -> { ex, set, i }
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
 }
+
+// Dumbbell-oefeningen: het ingevoerde gewicht is per hand, het totaal is dat maal twee.
+const factorOf = (ex) => (ex.dumbbell ? 2 : 1);
+
+// Pauzes: elk interval is [van, tot] in echte tijd. tot is null zolang de pauze loopt.
+function isPaused() {
+  const p = (state.pauses || []).at(-1);
+  return !!p && p[1] == null;
+}
+function pausedUntil(t) {
+  let sum = 0;
+  for (const [from, to] of state.pauses || []) {
+    if (t > from) sum += Math.min(to ?? Infinity, t) - from;
+  }
+  return sum;
+}
+// Tijd zonder pauzes: wat er in het FIT-bestand komt, zodat de duur klopt met de werkelijke trainingstijd.
+const adj = (t) => t - pausedUntil(t);
 
 // Starttijd: expliciet gedrukt, anders 60 s voor de eerste afvinking.
 function sessionStart() {
@@ -27,16 +46,23 @@ function sessionStart() {
   return times.length ? Math.min(...times) - 60000 : null;
 }
 
+function valueOf(id, set, ex) {
+  const v = state.vals[id] || {};
+  const wRaw = v.w !== undefined && v.w !== "" ? v.w : set.weight;
+  const rRaw = v.r !== undefined ? v.r : set.reps;
+  const w = parseFloat(String(wRaw).replace(",", "."));
+  const r = rRaw === "" || rRaw === null || rRaw === undefined ? null : parseInt(rRaw, 10);
+  const perHand = isNaN(w) ? 0 : w;
+  return { perHand, total: perHand * factorOf(ex), reps: isNaN(r) ? null : r };
+}
+
 function completedSets() {
   return Object.entries(state.done)
     .sort((a, b) => a[1] - b[1])
     .map(([id, doneAt]) => {
       const { ex, set } = setIndex[id];
-      const v = state.vals[id] || {};
-      const w = v.w !== undefined && v.w !== "" ? parseFloat(String(v.w).replace(",", ".")) : set.weight;
-      const rRaw = v.r !== undefined ? v.r : set.reps;
-      const r = rRaw === "" || rRaw === null || rRaw === undefined ? null : parseInt(rRaw, 10);
-      return { id, exercise: ex.name, category: ex.category, subtype: ex.subtype, label: set.label, weight: isNaN(w) ? 0 : w, reps: isNaN(r) ? null : r, doneAt };
+      const { perHand, total, reps } = valueOf(id, set, ex);
+      return { id, exercise: ex.name, category: ex.category, subtype: ex.subtype, label: set.label, perHand, weight: total, reps, dumbbell: !!ex.dumbbell, doneAt };
     });
 }
 
@@ -51,17 +77,20 @@ function summary() {
     const score = s.weight * 1000 + (s.reps || 0);
     if (!prev || score > prev.score) best.set(s.exercise, { score, s });
   }
-  const top = [...best.values()].map(({ s }) => ({
-    name: s.exercise,
-    text: `${s.weight ? s.weight.toString().replace(".", ",") + " kg × " : ""}${s.reps ?? "–"}`,
-  }));
+  const top = [...best.values()].map(({ s }) => {
+    let text = "";
+    if (s.dumbbell && s.perHand) text = `2 × ${fmtNum(s.perHand)} kg × ${s.reps ?? "–"}`;
+    else if (s.weight) text = `${fmtNum(s.weight)} kg × ${s.reps ?? "–"}`;
+    else text = `${s.reps ?? "–"}`;
+    return { name: s.exercise, text };
+  });
   return {
     title: W.title,
     dateLabel: new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
     startLabel: start ? fmtTime(start) : "",
     sets: done.length,
     volume,
-    minutes: start && last ? (last - start) / 60000 : 0,
+    minutes: start && last ? (adj(last) - adj(start)) / 60000 : 0,
     top,
   };
 }
@@ -73,7 +102,7 @@ function render() {
     html += `<section><div class="sechead">${b.tag ? `<span class="tag">${esc(b.tag)}</span>` : ""}<h2>${esc(b.title)}</h2></div>`;
     for (const ex of b.exercises) {
       html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
-        <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}</div>
+        <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.dumbbell ? "<span>per dumbbell</span>" : ""}${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -86,9 +115,9 @@ function render() {
         html += `<div class="set${isDone ? " done" : ""}" data-id="${id}" data-rest="${ex.rest}" data-name="${esc(ex.name)}">
           <input type="checkbox" id="c-${id}" aria-label="${esc(ex.name + " " + set.label)} afvinken" ${isDone ? "checked" : ""}>
           <label class="lbl" for="c-${id}">${esc(set.label)}</label>
-          <input type="text" inputmode="decimal" id="w-${id}" aria-label="Gewicht in kg" value="${esc(w)}">
-          <span class="x">×</span>
-          <input type="text" inputmode="numeric" id="r-${id}" aria-label="Herhalingen" value="${esc(r)}"></div>`;
+          <div class="fld r"><input type="text" inputmode="numeric" id="r-${id}" aria-label="Herhalingen" value="${esc(r)}"><span class="unit">reps</span></div>
+          <div class="fld w">${ex.dumbbell ? '<span class="pre">2 ×</span>' : ""}<input type="text" inputmode="decimal" id="w-${id}" aria-label="${ex.dumbbell ? "Gewicht per dumbbell in kg" : "Gewicht in kg"}" value="${esc(w)}"><span class="unit">kg</span></div>
+        </div>`;
       });
       html += `</div></div>`;
     }
@@ -106,19 +135,50 @@ function updateProgress() {
   const p = total ? Math.round((done / total) * 100) : 0;
   $("pp").textContent = `${p}%`;
   $("barfill").style.width = `${p}%`;
-  const startTxt = state.startMs ? `Gestart om ${fmtTime(state.startMs)}` : sessionStart() ? `Starttijd schatting ${fmtTime(sessionStart())}` : "Nog niet gestart";
-  $("startinfo").textContent = startTxt;
+  let info = state.startMs ? `Gestart om ${fmtTime(state.startMs)}` : sessionStart() ? `Starttijd schatting ${fmtTime(sessionStart())}` : "Nog niet gestart";
+  if (isPaused()) info += " · gepauzeerd";
+  $("startinfo").textContent = info;
   $("startbtn").hidden = !!state.startMs;
+  $("pausebtn").hidden = !state.startMs;
+  $("pausebtn").textContent = isPaused() ? "Hervat training" : "Pauze";
+  $("pausebtn").setAttribute("aria-pressed", String(isPaused()));
   $("exportrow").hidden = done === 0;
+}
+
+function togglePause() {
+  const now = Date.now();
+  if (isPaused()) {
+    state.pauses.at(-1)[1] = now;
+    if (restLeft !== null) {
+      endAt = now + restLeft;
+      restLeft = null;
+      $("timer").hidden = false;
+      tmr = setInterval(tick, 250);
+      tick();
+    }
+  } else {
+    state.pauses.push([now, null]);
+    if (tmr) {
+      restLeft = Math.max(0, endAt - now);
+      clearInterval(tmr);
+      tmr = null;
+      $("tl").textContent = "Gepauzeerd";
+      $("tt").textContent = fmtSec(Math.ceil(restLeft / 1000));
+    }
+  }
+  save();
+  updateProgress();
 }
 
 // Rusttimer
 let tmr = null;
 let endAt = 0;
+let restLeft = null; // resterende rust (ms) terwijl gepauzeerd
 function startRest(sec, name) {
   stopRest();
   if (!sec) return;
   endAt = Date.now() + sec * 1000;
+  restLeft = null;
   $("timer").hidden = false;
   $("timer").classList.remove("end");
   $("tl").textContent = `Rust na ${name}`;
@@ -141,6 +201,7 @@ function tick() {
 function stopRest() {
   if (tmr) clearInterval(tmr);
   tmr = null;
+  restLeft = null;
   $("timer").hidden = true;
 }
 
@@ -150,6 +211,7 @@ $("sections").addEventListener("change", (e) => {
   const row = e.target.closest(".set");
   const id = row.dataset.id;
   if (e.target.checked) {
+    if (isPaused()) togglePause(); // afvinken is werken: pauze stopt automatisch
     state.done[id] = Date.now();
     row.classList.add("done");
     startRest(Number(row.dataset.rest), row.dataset.name);
@@ -178,6 +240,7 @@ $("startbtn").addEventListener("click", () => {
   updateProgress();
 });
 
+$("pausebtn").addEventListener("click", togglePause);
 $("tskip").addEventListener("click", stopRest);
 
 let armed = false;
@@ -189,7 +252,7 @@ $("reset").addEventListener("click", () => {
     setTimeout(() => { armed = false; rb.textContent = "Wis ingevulde waarden"; }, 4000);
     return;
   }
-  state = { startMs: null, vals: {}, done: {} };
+  state = { startMs: null, vals: {}, done: {}, pauses: [] };
   save();
   armed = false;
   rb.textContent = "Wis ingevulde waarden";
@@ -209,23 +272,19 @@ function download(blob, name) {
 }
 
 // Geplande workout voor Garmin: elke set als stap, met rust ertussen (niet na de laatste set).
-// Gewichten en reps komen uit je laatste aanpassingen, anders uit het plan.
+// Gewichten en reps komen uit je laatste aanpassingen, anders uit het plan. Gewicht is het totaal.
 function plannedSteps() {
   const flat = [];
   for (const b of W.blocks) for (const ex of b.exercises) ex.sets.forEach((set, i) => flat.push({ ex, set, i }));
   const steps = [];
   flat.forEach(({ ex, set, i }, n) => {
-    const id = `${ex.id}-${i}`;
-    const v = state.vals[id] || {};
-    const w = v.w !== undefined && v.w !== "" ? parseFloat(String(v.w).replace(",", ".")) : set.weight;
-    const rRaw = v.r !== undefined ? v.r : set.reps;
-    const r = rRaw === "" || rRaw === null || rRaw === undefined ? null : parseInt(rRaw, 10);
+    const { total, reps } = valueOf(`${ex.id}-${i}`, set, ex);
     steps.push({
       name: `${ex.name} · ${set.label}`,
       category: ex.category,
       subtype: ex.subtype,
-      reps: isNaN(r) ? null : r,
-      weight: isNaN(w) ? 0 : w,
+      reps,
+      weight: total,
     });
     if (ex.rest && n < flat.length - 1) steps.push({ rest: true, restSec: ex.rest });
   });
@@ -246,8 +305,9 @@ $("wodbtn").addEventListener("click", async () => {
 $("fitbtn").addEventListener("click", async () => {
   try {
     const sdk = await loadSdk();
-    const done = completedSets();
-    const bytes = buildFit(sdk, { sessionStartMs: sessionStart(), sets: done, title: W.title });
+    const done = completedSets().map((s) => ({ ...s, doneAt: adj(s.doneAt) }));
+    const start = sessionStart();
+    const bytes = buildFit(sdk, { sessionStartMs: start ? adj(start) : null, sets: done, title: W.title });
     download(new Blob([bytes], { type: "application/vnd.ant.fit" }), `${W.id}.fit`);
     $("msg").textContent = "FIT-bestand gemaakt. Upload het bij Garmin Connect (Activiteiten → Importeren) of direct bij Strava.";
   } catch (e) {
