@@ -111,9 +111,12 @@ export function renderShare(kind, s) {
     ctx.lineTo(W - pad, listTop - 30);
     ctx.stroke();
 
-    const maxRows = kind === "strava" ? 7 : 9;
     const rowH = kind === "instagram" ? 92 : 76;
-    s.top.slice(0, maxRows).forEach((r, i) => {
+    // Alleen rijen die boven de voettekst passen (voettekst staat op H-70, de balk op H-46).
+    const fit = Math.max(1, Math.floor((H - 160 - listTop) / rowH) + 1);
+    const hidden = s.top.length > fit ? s.top.length - (fit - 1) : 0;
+    const shown = hidden ? s.top.slice(0, fit - 1) : s.top.slice(0, fit);
+    shown.forEach((r, i) => {
       const ry = listTop + i * rowH;
       const valueW = (() => { ctx.font = `600 34px ${MONO}`; return ctx.measureText(r.text).width; })();
       ctx.fillStyle = C.ink;
@@ -123,6 +126,11 @@ export function renderShare(kind, s) {
       ctx.font = `600 34px ${MONO}`;
       ctx.fillText(r.text, W - pad - valueW, ry + 40);
     });
+    if (hidden) {
+      ctx.fillStyle = C.muted;
+      ctx.font = `500 30px ${FONT}`;
+      ctx.fillText(`+ ${hidden} meer`, pad, listTop + shown.length * rowH + 40);
+    }
   }
 
   // voet

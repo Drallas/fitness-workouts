@@ -72,3 +72,53 @@ export function buildFit(sdk, { sessionStartMs, sets, title }) {
 
   return enc.close();
 }
+
+// Geplande krachtworkout (bestandstype "workout") met een stap per set en aparte ruststappen.
+// Garmin Connect importeert dit als training onder Trainingen, en niet als activiteit.
+// steps: [{ name, category, subtype, reps (of null), weight (kg) }] of [{ rest: true, restSec }]
+export function buildWorkoutFit(sdk, { title, steps }) {
+  const { Encoder, Profile } = sdk;
+  const enc = new Encoder();
+
+  enc.writeMesg({
+    mesgNum: Profile.MesgNum.FILE_ID,
+    type: "workout",
+    manufacturer: "development",
+    product: 0,
+    timeCreated: new Date(),
+  });
+
+  enc.writeMesg({
+    mesgNum: Profile.MesgNum.WORKOUT,
+    wktName: title,
+    sport: "training",
+    subSport: "strengthTraining",
+    numValidSteps: steps.length,
+  });
+
+  steps.forEach((s, i) => {
+    const msg = { mesgNum: Profile.MesgNum.WORKOUT_STEP, messageIndex: i, targetType: "open" };
+    if (s.rest) {
+      msg.wktStepName = "Rust";
+      msg.intensity = "rest";
+      msg.durationType = "time";
+      msg.durationValue = Math.round(s.restSec * 1000); // ruwe waarde in milliseconden
+    } else {
+      msg.wktStepName = s.name;
+      msg.intensity = "active";
+      if (s.reps !== null && s.reps !== undefined) {
+        msg.durationType = "reps";
+        msg.durationValue = Number(s.reps);
+      } else {
+        msg.durationType = "open";
+      }
+      if (s.category) msg.exerciseCategory = s.category;
+      const sub = subtypeId(sdk, s.category, s.subtype);
+      if (sub !== undefined) msg.exerciseName = sub;
+      if (s.weight) msg.exerciseWeight = s.weight;
+    }
+    enc.writeMesg(msg);
+  });
+
+  return enc.close();
+}

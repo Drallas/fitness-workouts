@@ -1,4 +1,4 @@
-import { buildFit } from "./fit.js";
+import { buildFit, buildWorkoutFit } from "./fit.js";
 
 // Pas geladen bij het exporteren, zodat de sets ook renderen als de CDN niet bereikbaar is.
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.217.0/src/index.js";
@@ -207,6 +207,41 @@ function download(blob, name) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
+
+// Geplande workout voor Garmin: elke set als stap, met rust ertussen (niet na de laatste set).
+// Gewichten en reps komen uit je laatste aanpassingen, anders uit het plan.
+function plannedSteps() {
+  const flat = [];
+  for (const b of W.blocks) for (const ex of b.exercises) ex.sets.forEach((set, i) => flat.push({ ex, set, i }));
+  const steps = [];
+  flat.forEach(({ ex, set, i }, n) => {
+    const id = `${ex.id}-${i}`;
+    const v = state.vals[id] || {};
+    const w = v.w !== undefined && v.w !== "" ? parseFloat(String(v.w).replace(",", ".")) : set.weight;
+    const rRaw = v.r !== undefined ? v.r : set.reps;
+    const r = rRaw === "" || rRaw === null || rRaw === undefined ? null : parseInt(rRaw, 10);
+    steps.push({
+      name: `${ex.name} · ${set.label}`,
+      category: ex.category,
+      subtype: ex.subtype,
+      reps: isNaN(r) ? null : r,
+      weight: isNaN(w) ? 0 : w,
+    });
+    if (ex.rest && n < flat.length - 1) steps.push({ rest: true, restSec: ex.rest });
+  });
+  return steps;
+}
+
+$("wodbtn").addEventListener("click", async () => {
+  try {
+    const sdk = await loadSdk();
+    const bytes = buildWorkoutFit(sdk, { title: W.title, steps: plannedSteps() });
+    download(new Blob([bytes], { type: "application/vnd.ant.fit" }), `${W.id}-workout.fit`);
+    $("msg").textContent = "Workout-bestand gemaakt. Bij Garmin Connect komt dit onder Trainingen, niet als activiteit.";
+  } catch (e) {
+    $("msg").textContent = "Workout-bestand lukte niet: de FIT-bibliotheek laadt niet. Controleer je verbinding en probeer opnieuw.";
+  }
+});
 
 $("fitbtn").addEventListener("click", async () => {
   try {
