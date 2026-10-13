@@ -1,0 +1,289 @@
+<title>Pushdag 13-10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: één smalle logboekkolom voor gebruik tussen de sets door; blokken A-F als secties, sets als afvinkbare regels. */
+:root {
+  --bg: #edf0f3;
+  --surface: #ffffff;
+  --ink: #16212b;
+  --muted: #5b6b79;
+  --line: #d3dae1;
+  --accent: #0e6f68;
+  --accent-ink: #ffffff;
+  --warm: #b4540a;
+  --soft: #e3ecee;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6;
+    --line: #2a3844; --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6;
+  --line: #2a3844; --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  padding-inline: 16px; padding-block: 16px 120px;
+}
+.wrap { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 14px; }
+h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
+h1 { font-size: 40px; line-height: 1; }
+h2 { font-size: 24px; line-height: 1.1; }
+.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+header { display: flex; flex-direction: column; gap: 6px; }
+.meta { color: var(--muted); margin: 0; max-width: 60ch; }
+.progress { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.pcount { font-family: var(--font-num); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; }
+.rule { background: var(--soft); padding: 12px 14px; border-radius: 6px; color: var(--ink); }
+.rule b { font-weight: 600; }
+.rule p { margin: 0; }
+.rule p + p { margin-top: 6px; }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.sechead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.tag { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--accent-ink); background: var(--accent); min-width: 28px; text-align: center; padding: 0 8px; border-radius: 4px; }
+.secnote { margin: 0; color: var(--muted); font-size: 14px; }
+.ex { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.ex:first-of-type { border-top: 0; padding-top: 0; }
+.exname { font-weight: 600; font-size: 16px; }
+.cue { margin: 0; color: var(--muted); font-size: 14px; }
+.facts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--font-num); font-size: 12.5px; color: var(--muted); }
+.facts .rest { color: var(--warm); }
+.sets { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.set { display: grid; grid-template-columns: 32px minmax(0, 1fr) 76px 18px 60px; align-items: center; gap: 8px; }
+.set label.lbl { font-size: 13.5px; min-width: 0; overflow-wrap: anywhere; }
+.set.done .lbl { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+.x { color: var(--muted); text-align: center; font-size: 13px; }
+input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; width: 30px; height: 30px; margin: 0;
+  border: 2px solid var(--muted); border-radius: 6px; background: var(--surface); display: grid; place-content: center; cursor: pointer;
+}
+input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; border: solid var(--accent-ink); border-width: 0 3px 3px 0; transform: translateY(-1px) rotate(45deg); }
+input[type="text"] {
+  width: 100%; min-width: 0; height: 36px; padding: 0 6px; text-align: right;
+  font-family: var(--font-num); font-size: 15px; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px;
+}
+input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.unit { font-size: 11px; color: var(--muted); font-family: var(--font-num); }
+.colhead { display: grid; grid-template-columns: 32px minmax(0, 1fr) 76px 18px 60px; gap: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.colhead span:nth-child(3), .colhead span:nth-child(5) { text-align: right; padding-right: 6px; }
+.timer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  background: var(--ink); color: var(--bg);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.timer .t { font-family: var(--font-num); font-size: 28px; font-weight: 500; }
+.timer .l { font-size: 13px; opacity: .8; }
+.timer button { font: inherit; font-weight: 600; background: transparent; color: inherit; border: 1.5px solid currentColor; border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+.timer.end { background: var(--accent); color: var(--accent-ink); }
+.reset { align-self: flex-start; font: inherit; font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+@media (max-width: 380px) { .set, .colhead { grid-template-columns: 30px minmax(0, 1fr) 64px 14px 52px; gap: 6px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Dinsdag 13-10-2026 · Push</div>
+    <h1>Borst, schouders, triceps</h1>
+    <p class="meta">Circa 50 minuten. Readiness medium, slaap matig: het volume is gematigd en elke blok heeft een eenvoudige afschakelregel. Gewichten zijn opgebouwd vanuit je Strava-sessies van 21-09, 28-09 en 06-10.</p>
+  </header>
+
+  <div class="progress">
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="pcount"><span id="pc">0 / 0 sets</span><span id="pp">0%</span></div>
+  </div>
+
+  <div class="rule">
+    <p><b>Afschakelen:</b> voelt set 1 van de bench al als RPE 9, of haal je minder dan 7 herhalingen, dan gaat B terug naar 2 rondes, vervalt de rest-pause bij C en sla je de staande schouderpers in D over.</p>
+    <p><b>Planning:</b> alleen bovenlichaam. Intervallen waren gisteren (3×6 min op 165 spm), dus geen conflict met de 48-uursregel voor benen.</p>
+  </div>
+
+  <div id="sections" class="wrap" style="gap:14px"></div>
+
+  <button class="reset" id="reset" type="button">Wis ingevulde waarden</button>
+</div>
+
+<div class="timer" id="timer" hidden>
+  <span class="l" id="tl">Rust</span>
+  <span class="t" id="tt">1:30</span>
+  <button type="button" id="tskip">Stop</button>
+</div>
+
+<script>
+var DATE_KEY = "pushdag-2026-10-13";
+var PLAN = [
+  { tag: "", title: "Opwarmen", note: "5 minuten. Schouders los, borst warm.", ex: [
+    { id: "w1", name: "Achterste schouder fly", cue: "Licht, gecontroleerd, schouderbladen samenknijpen aan het einde.", sets: [{ l: "1 set", w: "4", r: "15" }], rest: 0, last: "06-10: 8 kg × 12 (werkset)" },
+    { id: "w2", name: "Push-ups", cue: "Langzaam, 3 seconden zakken. Geen falen.", sets: [{ l: "1 set", w: "", r: "10" }], rest: 0, last: "" }
+  ]},
+  { tag: "A", title: "Bench press", note: "Hoofdlift. Eerst twee opwarmsets, daarna drie werksets.", ex: [
+    { id: "a1", name: "Bench press (stang)", cue: "Schouderbladen vast, stang naar de onderborst, voeten stevig. Laatste rep ongeveer RPE 8.", sets: [
+      { l: "Opwarm", w: "30", r: "10" }, { l: "Opwarm", w: "40", r: "6" },
+      { l: "Werkset 1", w: "47.5", r: "8" }, { l: "Werkset 2", w: "47.5", r: "8" }, { l: "Werkset 3", w: "47.5", r: "8" }
+    ], rest: 90, last: "06-10: 45 kg × 10 (bovenkant bereik) · 28-09: 50 × 8, 55 × 4" }
+  ]},
+  { tag: "B", title: "Superset borst en rug", note: "Wissel per ronde: eerst de schuine press, direct daarna de pull-up, dan rust. 3 rondes.", ex: [
+    { id: "b1", name: "Schuine dumbbell press", cue: "Bank op 30 graden, ellebogen ongeveer 45 graden van je romp, onderin even rek voelen.", sets: [
+      { l: "Ronde 1", w: "30", r: "8" }, { l: "Ronde 2", w: "30", r: "8" }, { l: "Ronde 3", w: "30", r: "8" }
+    ], rest: 0, last: "06-10: 24 en 28 kg × 11. Nu 2 kg per hand erbij, daarom 8 herhalingen." },
+    { id: "b2", name: "Pull-up, neutrale greep", cue: "Strikt, stop twee herhalingen voor falen. Dit is actieve rust voor de schouders.", sets: [
+      { l: "Ronde 1", w: "0", r: "5" }, { l: "Ronde 2", w: "0", r: "5" }, { l: "Ronde 3", w: "0", r: "5" }
+    ], rest: 90, last: "10-10: 8, 7, 6 herhalingen" }
+  ]},
+  { tag: "C", title: "Dips", note: "Parallelle dips, romp iets voorover voor meer borst.", ex: [
+    { id: "c1", name: "Parallelle dips", cue: "Diep tot de schouders net onder de ellebogen, boven niet slot. Set 3 als rest-pause: 8 herhalingen, 15 seconden rust, dan nog 3 tot 4.", sets: [
+      { l: "Set 1", w: "0", r: "8" }, { l: "Set 2", w: "0", r: "8" }, { l: "Set 3 rest-pause", w: "0", r: "8" }
+    ], rest: 90, last: "Geen parallelle dips in je laatste 7 krachtsessies. Kies reps op gevoel (RPE 8). Bench dips: 20 kg × 8 op 28-09." }
+  ]},
+  { tag: "D", title: "Schouders", note: "Pers eerst, daarna de zijkant. Zijheffingen ontbreken in je laatste 7 sessies in Strava.", ex: [
+    { id: "d1", name: "Staande schouderpers", cue: "Billen en buik aanspannen, hoofd door de armen aan het einde.", sets: [
+      { l: "Set 1", w: "20", r: "10" }, { l: "Set 2", w: "20", r: "10" }
+    ], rest: 75, last: "06-10: 20 kg × 11, 10, 10" },
+    { id: "d2", name: "Zijwaartse zijheffing", cue: "Pink iets hoger dan duim, tot schouderhoogte, geen zwaaien.", sets: [
+      { l: "Set 1", w: "6", r: "15" }, { l: "Set 2", w: "6", r: "15" }, { l: "Set 3", w: "6", r: "15" }
+    ], rest: 45, last: "Nog geen recente data. Begin op 6 kg en pas aan." }
+  ]},
+  { tag: "E", title: "Triceps giant set", note: "Drie oefeningen achter elkaar zonder rust. Rust pas na de push-ups. 3 rondes.", ex: [
+    { id: "e1", name: "Kabel overhead extension", cue: "Ellebogen dicht, volledig strekken, diepe rek in de lange kop.", sets: [
+      { l: "Ronde 1", w: "11", r: "12" }, { l: "Ronde 2", w: "11", r: "12" }, { l: "Ronde 3", w: "11", r: "12" }
+    ], rest: 0, last: "06-10: 11 kg × 12 (3 sets). Richt op 15 voordat je omhoog gaat." },
+    { id: "e2", name: "Triceps pressdown", cue: "Ellebogen langs je zij, onderin een tel vasthouden.", sets: [
+      { l: "Ronde 1", w: "15", r: "12" }, { l: "Ronde 2", w: "15", r: "12" }, { l: "Ronde 3", w: "15", r: "12" }
+    ], rest: 0, last: "06-10: 15 kg × 13. Haal je 13 of meer, dan volgende keer 16." },
+    { id: "e3", name: "Smalle push-ups", cue: "Handen onder de schouders, ellebogen langs je lijf. Stop twee herhalingen voor falen.", sets: [
+      { l: "Ronde 1", w: "0", r: "" }, { l: "Ronde 2", w: "0", r: "" }, { l: "Ronde 3", w: "0", r: "" }
+    ], rest: 60, last: "Vul het aantal herhalingen in." }
+  ]},
+  { tag: "F", title: "Core", note: "Mag vervallen als de tijd of de energie op is.", ex: [
+    { id: "f1", name: "Hanging knee raise", cue: "Bekken kantelen, niet zwaaien.", sets: [
+      { l: "Set 1", w: "0", r: "15" }, { l: "Set 2", w: "0", r: "15" }, { l: "Set 3", w: "0", r: "15" }
+    ], rest: 45, last: "10-10: 3 × 15" }
+  ]}
+];
+
+var state = {};
+try { state = JSON.parse(localStorage.getItem(DATE_KEY) || "{}") || {}; } catch (e) { state = {}; }
+function save() { try { localStorage.setItem(DATE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+var total = 0;
+PLAN.forEach(function (s) { s.ex.forEach(function (x) { total += x.sets.length; }); });
+
+function fmt(sec) { var m = Math.floor(sec / 60), s = sec % 60; return m + ":" + (s < 10 ? "0" : "") + s; }
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
+
+function render() {
+  var html = "";
+  PLAN.forEach(function (s) {
+    html += '<section><div class="sechead">' + (s.tag ? '<span class="tag">' + s.tag + "</span>" : "") + "<h2>" + esc(s.title) + '</h2></div><p class="secnote">' + esc(s.note) + "</p>";
+    s.ex.forEach(function (x) {
+      var restTxt = x.rest ? "rust " + fmt(x.rest) : "direct door";
+      html += '<div class="ex"><div class="exname">' + esc(x.name) + '</div><p class="cue">' + esc(x.cue) + "</p>";
+      html += '<div class="facts"><span>' + x.sets.length + " sets</span><span class=\"rest\">" + restTxt + "</span>" + (x.last ? "<span>" + esc(x.last) + "</span>" : "") + "</div>";
+      html += '<div class="sets"><div class="colhead"><span></span><span>Set</span><span>kg</span><span></span><span>Reps</span></div>';
+      x.sets.forEach(function (st, i) {
+        var id = x.id + "-" + i;
+        var v = state[id] || {};
+        var w = v.w !== undefined ? v.w : st.w;
+        var r = v.r !== undefined ? v.r : st.r;
+        html += '<div class="set' + (v.c ? " done" : "") + '" data-id="' + id + '" data-rest="' + x.rest + '" data-name="' + esc(x.name) + '">' +
+          '<input type="checkbox" id="c-' + id + '" aria-label="' + esc(x.name + " " + st.l) + ' afvinken"' + (v.c ? " checked" : "") + ">" +
+          '<label class="lbl" for="c-' + id + '">' + esc(st.l) + "</label>" +
+          '<input type="text" inputmode="decimal" id="w-' + id + '" aria-label="Gewicht in kg" value="' + esc(w) + '">' +
+          '<span class="x">×</span>' +
+          '<input type="text" inputmode="numeric" id="r-' + id + '" aria-label="Herhalingen" value="' + esc(r) + '"></div>';
+      });
+      html += "</div></div>";
+    });
+    html += "</section>";
+  });
+  document.getElementById("sections").innerHTML = html;
+  updateProgress();
+}
+
+function updateProgress() {
+  var done = 0;
+  for (var k in state) { if (state[k] && state[k].c) done++; }
+  document.getElementById("pc").textContent = done + " / " + total + " sets";
+  var p = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("pp").textContent = p + "%";
+  document.getElementById("barfill").style.width = p + "%";
+}
+
+var tmr = null, endAt = 0;
+function startRest(sec, name) {
+  stopRest();
+  if (!sec) return;
+  endAt = Date.now() + sec * 1000;
+  var box = document.getElementById("timer");
+  box.hidden = false; box.classList.remove("end");
+  document.getElementById("tl").textContent = "Rust na " + name;
+  tick();
+  tmr = setInterval(tick, 250);
+}
+function tick() {
+  var left = Math.ceil((endAt - Date.now()) / 1000);
+  var box = document.getElementById("timer");
+  if (left <= 0) {
+    clearInterval(tmr); tmr = null;
+    document.getElementById("tt").textContent = "0:00";
+    document.getElementById("tl").textContent = "Volgende set";
+    box.classList.add("end");
+    try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+    return;
+  }
+  document.getElementById("tt").textContent = fmt(left);
+}
+function stopRest() {
+  if (tmr) { clearInterval(tmr); tmr = null; }
+  document.getElementById("timer").hidden = true;
+}
+document.getElementById("tskip").addEventListener("click", stopRest);
+
+var secs = document.getElementById("sections");
+secs.addEventListener("change", function (e) {
+  var row = e.target.closest(".set");
+  if (!row) return;
+  var id = row.getAttribute("data-id");
+  var v = state[id] || {};
+  if (e.target.type === "checkbox") {
+    v.c = e.target.checked;
+    row.classList.toggle("done", v.c);
+    if (v.c) startRest(parseInt(row.getAttribute("data-rest"), 10), row.getAttribute("data-name"));
+  }
+  state[id] = v;
+  save(); updateProgress();
+});
+secs.addEventListener("input", function (e) {
+  var row = e.target.closest(".set");
+  if (!row || e.target.type !== "text") return;
+  var id = row.getAttribute("data-id");
+  var v = state[id] || {};
+  if (e.target.id.charAt(0) === "w") v.w = e.target.value; else v.r = e.target.value;
+  state[id] = v;
+  save();
+});
+
+var rb = document.getElementById("reset"), armed = false;
+rb.addEventListener("click", function () {
+  if (!armed) { armed = true; rb.textContent = "Tik nogmaals om alles te wissen"; setTimeout(function () { armed = false; rb.textContent = "Wis ingevulde waarden"; }, 4000); return; }
+  state = {}; save(); armed = false; rb.textContent = "Wis ingevulde waarden"; stopRest(); render();
+});
+
+try { if (navigator.wakeLock) navigator.wakeLock.request("screen").catch(function () {}); } catch (e) {}
+render();
+</script>
