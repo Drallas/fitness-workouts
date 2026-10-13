@@ -1,0 +1,115 @@
+{
+  "id": "push-2026-10-13",
+  "title": "Push: borst, schouders, triceps",
+  "date": "2026-10-13",
+  "sport": "strengthTraining",
+  "blocks": [
+    {
+      "tag": "",
+      "title": "Opwarmen",
+      "exercises": [
+        { "id": "w1", "name": "Achterste schouder fly", "category": "flye", "subtype": "faceDownInclineReverseFlye", "rest": 0,
+          "sets": [ { "label": "1 set", "weight": 4, "reps": 15 } ] },
+        { "id": "w2", "name": "Push-ups", "category": "pushUp", "subtype": null, "rest": 0,
+          "sets": [ { "label": "1 set", "weight": 0, "reps": 10 } ] }
+      ]
+    },
+    {
+      "tag": "A",
+      "title": "Bench press",
+      "exercises": [
+        { "id": "a1", "name": "Bench press (stang)", "category": "benchPress", "subtype": "barbellBenchPress", "rest": 90,
+          "sets": [
+            { "label": "Opwarm", "weight": 30, "reps": 10 },
+            { "label": "Opwarm", "weight": 40, "reps": 6 },
+            { "label": "Werkset 1", "weight": 47.5, "reps": 8 },
+            { "label": "Werkset 2", "weight": 47.5, "reps": 8 },
+            { "label": "Werkset 3", "weight": 47.5, "reps": 8 }
+          ] }
+      ]
+    },
+    {
+      "tag": "B",
+      "title": "Superset borst en rug",
+      "exercises": [
+        { "id": "b1", "name": "Schuine dumbbell press", "category": "benchPress", "subtype": "inclineDumbbellBenchPress", "rest": 0,
+          "sets": [
+            { "label": "Ronde 1", "weight": 30, "reps": 8 },
+            { "label": "Ronde 2", "weight": 30, "reps": 8 },
+            { "label": "Ronde 3", "weight": 30, "reps": 8 }
+          ] },
+        { "id": "b2", "name": "Pull-up, neutrale greep", "category": "pullUp", "subtype": null, "rest": 90,
+          "sets": [
+            { "label": "Ronde 1", "weight": 0, "reps": 5 },
+            { "label": "Ronde 2", "weight": 0, "reps": 5 },
+            { "label": "Ronde 3", "weight": 0, "reps": 5 }
+          ] }
+      ]
+    },
+    {
+      "tag": "C",
+      "title": "Dips",
+      "exercises": [
+        { "id": "c1", "name": "Parallelle dips", "category": "tricepsExtension", "subtype": "bodyWeightDip", "rest": 90,
+          "sets": [
+            { "label": "Set 1", "weight": 0, "reps": 8 },
+            { "label": "Set 2", "weight": 0, "reps": 8 },
+            { "label": "Set 3 rest-pause", "weight": 0, "reps": 8 }
+          ] }
+      ]
+    },
+    {
+      "tag": "D",
+      "title": "Schouders",
+      "exercises": [
+        { "id": "d1", "name": "Staande schouderpers", "category": "shoulderPress", "subtype": "dumbbellShoulderPress", "rest": 75,
+          "sets": [
+            { "label": "Set 1", "weight": 20, "reps": 10 },
+            { "label": "Set 2", "weight": 20, "reps": 10 }
+          ] },
+        { "id": "d2", "name": "Zijwaartse zijheffing", "category": "lateralRaise", "subtype": "dumbbellLateralRaise", "rest": 45,
+          "sets": [
+            { "label": "Set 1", "weight": 6, "reps": 15 },
+            { "label": "Set 2", "weight": 6, "reps": 15 },
+            { "label": "Set 3", "weight": 6, "reps": 15 }
+          ] }
+      ]
+    },
+    {
+      "tag": "E",
+      "title": "Triceps giant set",
+      "exercises": [
+        { "id": "e1", "name": "Kabel overhead extension", "category": "tricepsExtension", "subtype": "cableOverheadTricepsExtension", "rest": 0,
+          "sets": [
+            { "label": "Ronde 1", "weight": 11, "reps": 12 },
+            { "label": "Ronde 2", "weight": 11, "reps": 12 },
+            { "label": "Ronde 3", "weight": 11, "reps": 12 }
+          ] },
+        { "id": "e2", "name": "Triceps pressdown", "category": "tricepsExtension", "subtype": "tricepsPressdown", "rest": 0,
+          "sets": [
+            { "label": "Ronde 1", "weight": 15, "reps": 12 },
+            { "label": "Ronde 2", "weight": 15, "reps": 12 },
+            { "label": "Ronde 3", "weight": 15, "reps": 12 }
+          ] },
+        { "id": "e3", "name": "Smalle push-ups", "category": "pushUp", "subtype": "closeHandsPushUp", "rest": 60,
+          "sets": [
+            { "label": "Ronde 1", "weight": 0, "reps": null },
+            { "label": "Ronde 2", "weight": 0, "reps": null },
+            { "label": "Ronde 3", "weight": 0, "reps": null }
+          ] }
+      ]
+    },
+    {
+      "tag": "F",
+      "title": "Core",
+      "exercises": [
+        { "id": "f1", "name": "Hanging knee raise", "category": "legRaise", "subtype": "hangingKneeRaise", "rest": 45,
+          "sets": [
+            { "label": "Set 1", "weight": 0, "reps": 15 },
+            { "label": "Set 2", "weight": 0, "reps": 15 },
+            { "label": "Set 3", "weight": 0, "reps": 15 }
+          ] }
+      ]
+    }
+  ]
+}
