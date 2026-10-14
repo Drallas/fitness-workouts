@@ -1,4 +1,5 @@
 import { buildFit, buildWorkoutFit } from "./fit.js";
+import { savePlan, loadPlan, upsertSession, setStatus } from "./store.js";
 import { renderShare, SHARE_FORMATS } from "./share.js";
 
 // Pas geladen bij het exporteren, zodat de sets ook renderen als de CDN niet bereikbaar is.
@@ -148,6 +149,7 @@ function updateProgress() {
   let info = state.startMs ? `Gestart om ${fmtTime(state.startMs)}` : sessionStart() ? `Starttijd schatting ${fmtTime(sessionStart())}` : "Nog niet gestart";
   if (isPaused()) info += " · gepauzeerd";
   $("startinfo").textContent = info;
+  if (state.startMs) setStatus(W.id, done === total && total ? "klaar" : "bezig");
   // Export is er altijd, ook voor je de eerste set hebt afgevinkt.
   $("exportrow").hidden = false;
   $("startbtn").hidden = !!state.startMs;
@@ -248,8 +250,9 @@ $("sections").addEventListener("input", (e) => {
 
 $("startbtn").addEventListener("click", () => {
   state.startMs = Date.now();
-  // Vanaf nu bewaren we het plan zelf, zodat de training na een herlaad of later terug te vinden is.
-  try { localStorage.setItem("fw-active", JSON.stringify(W)); } catch (e) {}
+  // Vanaf nu staat de training in de lijst op de startpagina, tot je hem verwijdert.
+  savePlan(W);
+  upsertSession({ id: W.id, title: W.title, date: W.date, startMs: state.startMs, status: "bezig" });
   save();
   updateProgress();
 });
@@ -371,9 +374,12 @@ function addDemoLinks(w) {
 (async function init() {
   const params = new URLSearchParams(location.search);
   let loaded = null;
-  if (params.get("w") !== "push") {
-    // Eerst het plan van de startpagina (deze tab), anders de laatst gestarte training.
-    try { loaded = JSON.parse(sessionStorage.getItem("fw-current")) || JSON.parse(localStorage.getItem("fw-active")); } catch (e) {}
+  if (params.get("id")) {
+    // Een eerder gestarte training: het plan en de voortgang komen uit de opslag.
+    loaded = loadPlan(params.get("id"));
+  } else if (params.get("w") !== "push") {
+    // Nieuw plan van de startpagina (deze tab).
+    try { loaded = JSON.parse(sessionStorage.getItem("fw-current")); } catch (e) {}
   }
   W = loaded || await (await fetch(new URL("./workouts/push-2026-10-13.json", import.meta.url))).json();
   addDemoLinks(W);
@@ -382,6 +388,7 @@ function addDemoLinks(w) {
     const raw = localStorage.getItem(KEY);
     if (raw) state = { ...state, ...JSON.parse(raw) };
   } catch (e) {}
+  if (state.startMs) upsertSession({ id: W.id, title: W.title, date: W.date, startMs: state.startMs, status: "bezig" });
   document.title = W.title;
   $("wtitle").textContent = W.title;
   $("wdate").textContent = new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
