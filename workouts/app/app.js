@@ -144,6 +144,9 @@ function summary() {
   };
 }
 
+// Eigen oefeningen: alles wat je zelf hebt toegevoegd (ook oudere toevoegingen in het blok "Extra").
+const removable = (block, ex) => !!ex.custom || block.tag === "+";
+
 function render() {
   let html = "";
   let total = 0;
@@ -153,7 +156,7 @@ function render() {
       exById[ex.id] = ex;
       // Eén subtiele link "uitleg ↗" opent een overlay met plaatje en YouTube-link. Geen grote knop op de pagina.
       html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
-        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.bodyweight ? `<span>${t("train.bw")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button>${ex.custom ? `<button class="infolink" type="button" data-delex="${esc(ex.id)}">${pendingDel === "ex:" + ex.id ? t("add.sure") : t("add.delEx")}</button>` : ""}</div>
+        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.bodyweight ? `<span>${t("train.bw")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button>${removable(b, ex) ? `<button class="infolink" type="button" data-delex="${esc(ex.id)}">${pendingDel === "ex:" + ex.id ? t("add.sure") : t("add.delEx")}</button>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -168,7 +171,7 @@ function render() {
           <label class="lbl" for="c-${id}">${esc(set.label)}</label>
           <div class="fld r"><input type="text" inputmode="numeric" id="r-${id}" aria-label="Herhalingen" value="${esc(r)}"><span class="unit">reps</span></div>
           <div class="fld w">${ex.dumbbell ? '<span class="pre">2 ×</span>' : ""}<input type="text" inputmode="decimal" id="w-${id}" aria-label="${ex.dumbbell ? "Gewicht per dumbbell in kg" : "Gewicht in kg"}" value="${esc(w)}"><span class="unit">kg</span></div>
-          ${ex.custom ? `<button class="setdel" type="button" data-delset="${esc(ex.id)}" data-idx="${i}" aria-label="${esc(t("add.delSet"))}">${pendingDel === `set:${ex.id}:${i}` ? t("add.sure") : "✕"}</button>` : ""}
+          ${removable(b, ex) ? `<button class="setdel" type="button" data-delset="${esc(ex.id)}" data-idx="${i}" aria-label="${esc(t("add.delSet"))}">${pendingDel === `set:${ex.id}:${i}` ? t("add.sure") : "✕"}</button>` : ""}
         </div>`;
       });
       html += `</div></div>`;
