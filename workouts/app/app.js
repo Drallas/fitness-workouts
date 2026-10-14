@@ -153,7 +153,7 @@ function render() {
       exById[ex.id] = ex;
       // Eén subtiele link "uitleg ↗" opent een overlay met plaatje en YouTube-link. Geen grote knop op de pagina.
       html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
-        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.bodyweight ? `<span>${t("train.bw")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button></div>
+        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.bodyweight ? `<span>${t("train.bw")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button>${ex.custom ? `<button class="infolink" type="button" data-delex="${esc(ex.id)}">${pendingDel === "ex:" + ex.id ? t("add.sure") : t("add.delEx")}</button>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -168,6 +168,7 @@ function render() {
           <label class="lbl" for="c-${id}">${esc(set.label)}</label>
           <div class="fld r"><input type="text" inputmode="numeric" id="r-${id}" aria-label="Herhalingen" value="${esc(r)}"><span class="unit">reps</span></div>
           <div class="fld w">${ex.dumbbell ? '<span class="pre">2 ×</span>' : ""}<input type="text" inputmode="decimal" id="w-${id}" aria-label="${ex.dumbbell ? "Gewicht per dumbbell in kg" : "Gewicht in kg"}" value="${esc(w)}"><span class="unit">kg</span></div>
+          ${ex.custom ? `<button class="setdel" type="button" data-delset="${esc(ex.id)}" data-idx="${i}" aria-label="${esc(t("add.delSet"))}">${pendingDel === `set:${ex.id}:${i}` ? t("add.sure") : "✕"}</button>` : ""}
         </div>`;
       });
       html += `</div></div>`;
@@ -441,6 +442,7 @@ function addExercise(base) {
     subtype: base.subtype || "",
     dumbbell: !!base.dumbbell,
     bodyweight: $("addbw").checked || !!base.bodyweight,
+    custom: true,
     rest: base.rest ?? 60,
     demo: "https://www.youtube.com/results?search_query=" + encodeURIComponent(base.name + " techniek"),
     sets: Array.from({ length: n }, (_, i) => ({ label: `Set ${i + 1}`, weight: !$("addbw").checked && w && !isNaN(Number(w)) ? Number(w) : null, reps: r && !isNaN(Number(r)) ? Number(r) : null })),
@@ -462,6 +464,60 @@ $("addres").addEventListener("click", (e) => {
   if (!b) return;
   if (b.dataset.lib) addExercise(LIB_ADD.find((x) => x.id === b.dataset.lib));
   else addExercise({ name: $("addq").value.trim() });
+});
+
+// Eigen oefeningen weghalen: een set of de hele oefening. Eerst een klik om te bevestigen, dan pas weg.
+let pendingDel = null;
+function findEx(id) {
+  for (const b of W.blocks) {
+    const ex = b.exercises.find((e) => e.id === id);
+    if (ex) return { block: b, ex };
+  }
+  return null;
+}
+function moveKey(from, to) {
+  if (from in state.done) state.done[to] = state.done[from]; else delete state.done[to];
+  delete state.done[from];
+  if (from in state.vals) state.vals[to] = state.vals[from]; else delete state.vals[to];
+  delete state.vals[from];
+}
+function finishEdit() {
+  if (!READONLY) {
+    savePlan(W);
+    try { sessionStorage.setItem("fw-current", JSON.stringify(W)); } catch (e) {}
+    save();
+  }
+  pendingDel = null;
+  render();
+}
+function removeSet(exId, idx) {
+  const found = findEx(exId);
+  if (!found || !found.ex.sets[idx]) return;
+  const { ex } = found;
+  ex.sets.splice(idx, 1);
+  // De sets erna schuiven een plek op, zodat afvinkingen en gewichten bij de juiste set blijven.
+  for (let j = idx; j < ex.sets.length; j++) moveKey(`${ex.id}-${j + 1}`, `${ex.id}-${j}`);
+  finishEdit();
+}
+function removeExercise(exId) {
+  const found = findEx(exId);
+  if (!found) return;
+  const { block, ex } = found;
+  block.exercises.splice(block.exercises.indexOf(ex), 1);
+  for (const k of Object.keys(state.done)) if (k.startsWith(`${exId}-`)) delete state.done[k];
+  for (const k of Object.keys(state.vals)) if (k.startsWith(`${exId}-`)) delete state.vals[k];
+  if (!block.exercises.length && block.tag === "+") W.blocks.splice(W.blocks.indexOf(block), 1);
+  finishEdit();
+}
+function pressDelete(key, action) {
+  if (pendingDel === key) action();
+  else { pendingDel = key; render(); }
+}
+$("sections").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-delex],[data-delset]");
+  if (!b) return;
+  if (b.dataset.delex) pressDelete(`ex:${b.dataset.delex}`, () => removeExercise(b.dataset.delex));
+  else pressDelete(`set:${b.dataset.delset}:${b.dataset.idx}`, () => removeSet(b.dataset.delset, Number(b.dataset.idx)));
 });
 
 // Start: een gegenereerde workout uit de startpagina, tenzij ?w=push, dan de pushdag als voorbeeld.

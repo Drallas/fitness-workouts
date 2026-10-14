@@ -93,6 +93,9 @@ input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; b
 .addset label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
 .addset input { height: 40px; font-size: 16px; }
 #addq { height: 40px; font-size: 16px; }
+.set { position: relative; }
+.setdel { position: absolute; top: -4px; right: -4px; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 34px; min-height: 34px; padding: 0 8px; cursor: pointer; }
+.setdel:hover, .setdel:focus-visible { color: var(--warm); border-color: var(--warm); }
 .reset { align-self: flex-start; font: inherit; font-size: 14px; min-height: 40px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 </style>
 </head>
