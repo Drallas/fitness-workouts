@@ -153,7 +153,7 @@ function render() {
       exById[ex.id] = ex;
       // Eén subtiele link "uitleg ↗" opent een overlay met plaatje en YouTube-link. Geen grote knop op de pagina.
       html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
-        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button></div>
+        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.bodyweight ? `<span>${t("train.bw")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button></div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -440,11 +440,13 @@ function addExercise(base) {
     category: base.category || "",
     subtype: base.subtype || "",
     dumbbell: !!base.dumbbell,
+    bodyweight: $("addbw").checked || !!base.bodyweight,
     rest: base.rest ?? 60,
     demo: "https://www.youtube.com/results?search_query=" + encodeURIComponent(base.name + " techniek"),
-    sets: Array.from({ length: n }, (_, i) => ({ label: `Set ${i + 1}`, weight: w && !isNaN(Number(w)) ? Number(w) : null, reps: r && !isNaN(Number(r)) ? Number(r) : null })),
+    sets: Array.from({ length: n }, (_, i) => ({ label: `Set ${i + 1}`, weight: !$("addbw").checked && w && !isNaN(Number(w)) ? Number(w) : null, reps: r && !isNaN(Number(r)) ? Number(r) : null })),
   };
   block.exercises.push(ex);
+  $("addbw").checked = false;
   savePlan(W);
   // Ook de tab-kopie bijwerken, zodat een herlaad vóór het starten de toevoeging behoudt.
   try { sessionStorage.setItem("fw-current", JSON.stringify(W)); } catch (e) {}

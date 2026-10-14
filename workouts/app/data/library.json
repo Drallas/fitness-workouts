@@ -286,6 +286,23 @@
         "img/ex/hanging-knee-1.jpg"
       ],
       "link": "https://www.simplyfitness.com/pages/hanging-leg-raise"
+    },
+    {
+      "id": "pull-up",
+      "name": "Pull-up",
+      "group": "rug",
+      "kind": "compound",
+      "category": "pullUp",
+      "subtype": "pullUp",
+      "dumbbell": false,
+      "bodyweight": true,
+      "rest": 90,
+      "wger": "Pull up",
+      "img": [
+        "img/ex/pull-up-0.jpg",
+        "img/ex/pull-up-1.jpg"
+      ],
+      "link": "https://www.simplyfitness.com/pages/pull-up"
     }
   ],
   "groups": [

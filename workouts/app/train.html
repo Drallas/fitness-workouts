@@ -87,6 +87,8 @@ input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; b
 #info .ytlink { font-size: 15px; font-weight: 600; color: var(--accent); }
 .addres { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .addres .addpick { width: 100%; text-align: left; }
+.chk { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink); }
+.chk input[type="checkbox"] { flex: 0 0 auto; }
 .addset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .addset label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
 .addset input { height: 40px; font-size: 16px; }
@@ -130,6 +132,7 @@ input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; b
       <label><span data-i18n="add.kg">kg</span><input type="text" id="addw" inputmode="decimal"></label>
       <label><span data-i18n="add.reps">Reps</span><input type="text" id="addr" inputmode="numeric"></label>
     </div>
+    <label class="chk"><input type="checkbox" id="addbw"><span data-i18n="add.bw">Bodyweight (no kg)</span></label>
   </section>
 
   <div class="card export" id="exportrow" hidden>
