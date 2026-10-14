@@ -151,6 +151,7 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
     <h2>Trainingen</h2>
     <p class="note">Gestarte trainingen blijven hier staan tot je ze verwijdert. Open er één om verder te gaan of om de downloads te pakken.</p>
     <ul class="slist" id="slist"></ul>
+    <button class="btn del" id="wisall" type="button" hidden>Wis alle trainingen</button>
   </section>
 
   <p class="alt"><a href="train.html?w=push">Voorbeeld: pushdag van 13-10</a></p>
@@ -158,34 +159,51 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
 
 <script type="module">
 import { generate } from "./generate.js";
-import { listSessions, removeSession } from "./store.js";
+import { listSessions, removeSession, loadPlan, loadState } from "./store.js";
+
+// Twee keer tikken om te bevestigen; de eerste tik toont de vraag een paar seconden.
+function confirmTwice(btn, action) {
+  if (btn.classList.contains("armed")) { action(); return; }
+  const label = btn.textContent;
+  btn.classList.add("armed");
+  btn.textContent = "Tik nogmaals om te bevestigen";
+  setTimeout(() => { btn.classList.remove("armed"); btn.textContent = label; }, 4000);
+}
 
 function renderSessions() {
   const list = listSessions();
   $("sessions").hidden = !list.length;
-  $("slist").innerHTML = list.map((s) => `
+  $("slist").innerHTML = list.map((s) => {
+    const plan = loadPlan(s.id);
+    const st = loadState(s.id);
+    const total = plan ? plan.blocks.reduce((n, b) => n + b.exercises.reduce((m, e) => m + e.sets.length, 0), 0) : 0;
+    const done = st ? Object.keys(st.done || {}).length : 0;
+    const started = s.startMs ? new Date(s.startMs).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }) : "";
+    const klaar = s.status === "klaar";
+    return `
     <li>
-      <span class="nm"><strong>${esc(s.title)}</strong></span>
-      <span class="st ${s.status === "klaar" ? "klaar" : ""}">${new Date(s.date + "T12:00:00").toLocaleDateString("nl-NL")} · ${s.status === "klaar" ? "afgerond" : "bezig"}</span>
+      <span><strong>${esc(s.title)}</strong></span>
+      <span class="st ${klaar ? "klaar" : ""}">${new Date(s.date + "T12:00:00").toLocaleDateString("nl-NL")}${started ? " · gestart " + started : ""} · ${done} / ${total} sets · ${klaar ? "afgerond" : "bezig"}</span>
       <span class="acts">
         <a class="btn primary" href="train.html?id=${encodeURIComponent(s.id)}">Open</a>
         <button class="btn del" type="button" data-del="${esc(s.id)}">Verwijder</button>
       </span>
-    </li>`).join("");
+    </li>`;
+  }).join("");
+  $("wisall").hidden = !list.length;
 }
 
 document.getElementById("slist").addEventListener("click", (e) => {
   const b = e.target.closest("[data-del]");
   if (!b) return;
-  // Twee keer tikken: de eerste keer vraagt om bevestiging.
-  if (!b.classList.contains("armed")) {
-    b.classList.add("armed");
-    b.textContent = "Tik nogmaals om te wissen";
-    setTimeout(() => { b.classList.remove("armed"); b.textContent = "Verwijder"; }, 4000);
-    return;
-  }
-  removeSession(b.dataset.del);
-  renderSessions();
+  confirmTwice(b, () => { removeSession(b.dataset.del); renderSessions(); });
+});
+
+document.getElementById("wisall").addEventListener("click", (e) => {
+  confirmTwice(e.currentTarget, () => {
+    for (const s of listSessions()) removeSession(s.id);
+    renderSessions();
+  });
 });
 
 const $ = (id) => document.getElementById(id);

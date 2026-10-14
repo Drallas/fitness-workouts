@@ -22,7 +22,8 @@ export function estimateMinutes(exercises) {
 
 const pad = (n) => String(n).padStart(2, "0");
 const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const hm = (d) => `${pad(d.getHours())}${pad(d.getMinutes())}`;
+// Met seconden, zodat twee trainingen binnen één minuut elk een eigen id krijgen.
+const hm = (d) => `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 
 function joinNl(labels) {
   if (labels.length <= 1) return labels.join("");

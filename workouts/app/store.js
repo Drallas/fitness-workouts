@@ -26,6 +26,11 @@ export function setStatus(id, status) {
   }
 }
 
+// Voortgang van een training (afvinkingen, gewichten, pauzes), of null.
+export function loadState(id) {
+  try { return JSON.parse(localStorage.getItem(`fw-${id}`)) || null; } catch (e) { return null; }
+}
+
 export function savePlan(plan) {
   try { localStorage.setItem(`fw-plan-${plan.id}`, JSON.stringify(plan)); } catch (e) {}
 }
