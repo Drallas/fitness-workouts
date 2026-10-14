@@ -62,7 +62,7 @@ function completedSets() {
     .map(([id, doneAt]) => {
       const { ex, set } = setIndex[id];
       const { perHand, total, reps } = valueOf(id, set, ex);
-      return { id, exercise: ex.name, category: ex.category, subtype: ex.subtype, label: set.label, perHand, weight: total, reps, dumbbell: !!ex.dumbbell, doneAt };
+      return { id, exercise: ex.name, block: setIndex[id].block, category: ex.category, subtype: ex.subtype, label: set.label, perHand, weight: total, reps, dumbbell: !!ex.dumbbell, doneAt };
     });
 }
 
@@ -84,6 +84,10 @@ function summary() {
     else text = `${s.reps ?? "–"}`;
     return { name: s.exercise, text };
   });
+  // aantal afgevinkte sets per blok, in de volgorde van het plan
+  const blocks = W.blocks
+    .map((b) => ({ title: b.title, sets: done.filter((s) => s.block === b.title).length }))
+    .filter((b) => b.sets > 0);
   return {
     title: W.title,
     dateLabel: new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
@@ -91,6 +95,7 @@ function summary() {
     sets: done.length,
     volume,
     minutes: start && last ? (adj(last) - adj(start)) / 60000 : 0,
+    blocks,
     top,
   };
 }
@@ -101,12 +106,13 @@ function render() {
   for (const b of W.blocks) {
     html += `<section><div class="sechead">${b.tag ? `<span class="tag">${esc(b.tag)}</span>` : ""}<h2>${esc(b.title)}</h2></div>`;
     for (const ex of b.exercises) {
-      html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
+      const nameHtml = ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener">${esc(ex.name)}</a>` : esc(ex.name);
+      html += `<div class="ex"><div class="exname">${nameHtml}</div>
         <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.dumbbell ? "<span>per dumbbell</span>" : ""}${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
-        setIndex[id] = { ex, set, i };
+        setIndex[id] = { ex, set, i, block: b.title };
         total++;
         const v = state.vals[id] || {};
         const w = v.w !== undefined ? v.w : set.weight;
@@ -213,6 +219,7 @@ $("sections").addEventListener("change", (e) => {
   if (e.target.checked) {
     if (isPaused()) togglePause(); // afvinken is werken: pauze stopt automatisch
     state.done[id] = Date.now();
+    rememberWeight(setIndex[id].ex, id, setIndex[id].set);
     row.classList.add("done");
     startRest(Number(row.dataset.rest), row.dataset.name);
   } else {
@@ -332,10 +339,36 @@ document.querySelectorAll("[data-share]").forEach((btn) => {
   });
 });
 
-// Start
+// Gewichtsgeschiedenis per oefening (subtype → laatst gebruikt gewicht, per hand bij dumbbell).
+// De startpagina gebruikt die om het startgewicht van een nieuwe workout in te vullen.
+const HIST_KEY = "fw-hist";
+function loadHist() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY)) || {}; } catch (e) { return {}; }
+}
+function rememberWeight(ex, id, set) {
+  if (!ex.subtype) return;
+  const { perHand } = valueOf(id, set, ex);
+  const h = loadHist();
+  h[ex.subtype] = perHand;
+  try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e) {}
+}
+
+// Oefeningen zonder demo-link (pushdag) krijgen dezelfde zoekopdracht als gegenereerde workouts.
+function addDemoLinks(w) {
+  for (const b of w.blocks) for (const ex of b.exercises) {
+    if (!ex.demo) ex.demo = "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " techniek");
+  }
+}
+
+// Start: een gegenereerde workout uit de startpagina, tenzij ?w=push, dan de pushdag als voorbeeld.
 (async function init() {
-  const url = new URL("./workouts/push-2026-10-13.json", import.meta.url);
-  W = await (await fetch(url)).json();
+  const params = new URLSearchParams(location.search);
+  let loaded = null;
+  if (params.get("w") !== "push") {
+    try { loaded = JSON.parse(localStorage.getItem("fw-current")); } catch (e) {}
+  }
+  W = loaded || await (await fetch(new URL("./workouts/push-2026-10-13.json", import.meta.url))).json();
+  addDemoLinks(W);
   KEY = `fw-${W.id}`;
   try {
     const raw = localStorage.getItem(KEY);
@@ -344,5 +377,10 @@ document.querySelectorAll("[data-share]").forEach((btn) => {
   document.title = W.title;
   $("wtitle").textContent = W.title;
   $("wdate").textContent = new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  $("rule").hidden = !W.id.startsWith("push");
+  if (W.notes?.length) {
+    $("notes").innerHTML = W.notes.map((n) => `<p>${esc(n)}</p>`).join("");
+    $("notes").hidden = false;
+  }
   render();
 })();

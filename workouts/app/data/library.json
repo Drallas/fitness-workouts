@@ -1,0 +1,37 @@
+{
+  "exercises": [
+    { "id": "lat-pulldown", "name": "Lat pulldown (breed)", "group": "rug", "kind": "compound", "category": "pullUp", "subtype": "latPulldown", "dumbbell": false, "rest": 90 },
+    { "id": "cable-row", "name": "Seated cable row", "group": "rug", "kind": "compound", "category": "row", "subtype": "cableRowStanding", "dumbbell": false, "rest": 90 },
+    { "id": "db-row", "name": "Dumbbell row", "group": "rug", "kind": "isolatie", "category": "row", "subtype": "dumbbellRow", "dumbbell": true, "rest": 60 },
+    { "id": "face-pull", "name": "Face pull", "group": "rug", "kind": "isolatie", "category": "row", "subtype": "facePull", "dumbbell": false, "rest": 60 },
+
+    { "id": "barbell-curl", "name": "Barbell biceps curl", "group": "biceps", "kind": "compound", "category": "curl", "subtype": "barbellBicepsCurl", "dumbbell": false, "rest": 60 },
+    { "id": "db-curl", "name": "Alternating dumbbell curl", "group": "biceps", "kind": "isolatie", "category": "curl", "subtype": "alternatingDumbbellBicepsCurl", "dumbbell": true, "rest": 60 },
+    { "id": "cable-curl", "name": "Cable biceps curl", "group": "biceps", "kind": "isolatie", "category": "curl", "subtype": "cableBicepsCurl", "dumbbell": false, "rest": 60 },
+
+    { "id": "back-squat", "name": "Barbell back squat", "group": "benen", "kind": "compound", "category": "squat", "subtype": "barbellBackSquat", "dumbbell": false, "rest": 120 },
+    { "id": "leg-press", "name": "Leg press", "group": "benen", "kind": "compound", "category": "squat", "subtype": "legPress", "dumbbell": false, "rest": 120 },
+    { "id": "rdl", "name": "Romanian deadlift (stang)", "group": "benen", "kind": "compound", "category": "deadlift", "subtype": "barbellStraightLegDeadlift", "dumbbell": false, "rest": 120 },
+    { "id": "leg-curl", "name": "Leg curl (machine)", "group": "benen", "kind": "isolatie", "category": "legCurl", "subtype": "legCurl", "dumbbell": false, "rest": 60 },
+
+    { "id": "bench-press", "name": "Bench press (stang)", "group": "borst", "kind": "compound", "category": "benchPress", "subtype": "barbellBenchPress", "dumbbell": false, "rest": 90 },
+    { "id": "incline-db", "name": "Schuine dumbbell press", "group": "borst", "kind": "isolatie", "category": "benchPress", "subtype": "inclineDumbbellBenchPress", "dumbbell": true, "rest": 60 },
+
+    { "id": "shoulder-press", "name": "Staande schouderpers", "group": "schouders", "kind": "compound", "category": "shoulderPress", "subtype": "dumbbellShoulderPress", "dumbbell": true, "rest": 75 },
+    { "id": "lateral-raise", "name": "Zijwaartse zijheffing", "group": "schouders", "kind": "isolatie", "category": "lateralRaise", "subtype": "dumbbellLateralRaise", "dumbbell": true, "rest": 45 },
+
+    { "id": "dips", "name": "Parallelle dips", "group": "triceps", "kind": "compound", "category": "tricepsExtension", "subtype": "bodyWeightDip", "dumbbell": false, "rest": 90 },
+    { "id": "pressdown", "name": "Triceps pressdown", "group": "triceps", "kind": "isolatie", "category": "tricepsExtension", "subtype": "tricepsPressdown", "dumbbell": false, "rest": 60 },
+
+    { "id": "hanging-knee", "name": "Hanging knee raise", "group": "core", "kind": "isolatie", "category": "legRaise", "subtype": "hangingKneeRaise", "dumbbell": false, "rest": 45 }
+  ],
+  "groups": [
+    { "id": "benen", "label": "Benen", "order": 1 },
+    { "id": "borst", "label": "Borst", "order": 2 },
+    { "id": "rug", "label": "Rug", "order": 3 },
+    { "id": "schouders", "label": "Schouders", "order": 4 },
+    { "id": "triceps", "label": "Triceps", "order": 5 },
+    { "id": "biceps", "label": "Biceps", "order": 6 },
+    { "id": "core", "label": "Core", "order": 7 }
+  ]
+}
