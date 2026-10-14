@@ -158,7 +158,7 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
 
 <script type="module">
 import { generate } from "./generate.js";
-import { listSessions, removeSession, loadPlan, loadState } from "./store.js";
+import { listSessions, removeSession, loadPlan, loadState, savePlan } from "./store.js";
 
 function renderSessions() {
   const list = listSessions();
@@ -176,6 +176,7 @@ function renderSessions() {
       <span class="st ${klaar ? "klaar" : ""}">${new Date(s.date + "T12:00:00").toLocaleDateString("nl-NL")}${started ? " · gestart " + started : ""} · ${done} / ${total} sets · ${klaar ? "afgerond" : "bezig"}</span>
       <span class="acts">
         <a class="btn primary" href="train.html?id=${encodeURIComponent(s.id)}">Open</a>
+        ${klaar ? `<button class="btn" type="button" data-again="${esc(s.id)}">Doe opnieuw</button>` : ""}
         <button class="btn del" type="button" data-del="${esc(s.id)}">Verwijder</button>
       </span>
     </li>`;
@@ -183,6 +184,18 @@ function renderSessions() {
 }
 
 document.getElementById("slist").addEventListener("click", (e) => {
+  const again = e.target.closest("[data-again]");
+  if (again) {
+    // Kopie van het plan met een nieuw id en lege voortgang; de afgeronde training blijft staan.
+    const plan = loadPlan(again.dataset.again);
+    if (!plan) return;
+    const now = new Date();
+    const newId = `${plan.id}-r${now.getTime().toString(36)}`;
+    const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    savePlan({ ...plan, id: newId, date: ymd });
+    location.href = `train.html?id=${encodeURIComponent(newId)}`;
+    return;
+  }
   const b = e.target.closest("[data-del]");
   if (!b) return;
   const s = listSessions().find((x) => x.id === b.dataset.del);
