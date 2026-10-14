@@ -32,6 +32,16 @@ export function renderNav(active) {
         ${ITEMS.map((i) => `<a class="nv" href="${i.href}"${i.id === active ? ' aria-current="page"' : ""}>${t(i.key)}</a>`).join("")}
       </div>
     </nav>`;
+  // Voettekst op elke pagina: copyright en een link naar de broncode op GitHub.
+  let foot = document.getElementById("foot");
+  if (!foot) {
+    foot = document.createElement("footer");
+    foot.id = "foot";
+    foot.className = "foot";
+    document.body.appendChild(foot);
+  }
+  foot.innerHTML = `${t("foot.copy", { year: new Date().getFullYear() })} · <a href="https://github.com/Drallas/fitness-workouts" target="_blank" rel="noopener">${t("foot.code")}</a>`;
+
   // Andere taal: de pagina laadt opnieuw, zodat alle teksten in de nieuwe taal komen.
   document.getElementById("langsel").addEventListener("change", (e) => {
     setLang(e.target.value);

@@ -41,7 +41,9 @@ export function initPage() {
 
 const DICT = {
   en: {
-    "brand": "Fitness",
+    "brand": "Ferro",
+    "foot.copy": "© {year} Allard",
+    "foot.code": "Source code on GitHub",
     "nav.start": "Start",
     "nav.trainings": "Trainings",
     "nav.history": "History",
@@ -271,7 +273,9 @@ const DICT = {
   },
 
   nl: {
-    "brand": "Fitness",
+    "brand": "Ferro",
+    "foot.copy": "© {year} Allard",
+    "foot.code": "Broncode op GitHub",
     "nav.start": "Start",
     "nav.trainings": "Trainingen",
     "nav.history": "Geschiedenis",
@@ -493,7 +497,9 @@ const DICT = {
   },
 
   es: {
-    "brand": "Fitness",
+    "brand": "Ferro",
+    "foot.copy": "© {year} Allard",
+    "foot.code": "Código en GitHub",
     "nav.start": "Inicio",
     "nav.trainings": "Entrenamientos",
     "nav.history": "Historial",
