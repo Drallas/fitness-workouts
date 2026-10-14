@@ -13,14 +13,35 @@ export function saveProfile(p) {
 // Alle trainingen die je kunt bekijken. Elk item: { id, title, date, status, plan, state, source, link }.
 export async function allRecords() {
   const out = [];
+  const seen = new Set();
   for (const s of listSessions()) {
     const plan = loadPlan(s.id);
     if (!plan) continue;
+    seen.add(s.id);
     out.push({
       id: s.id, title: s.title, date: s.date, status: s.status, plan,
       state: loadState(s.id) || {}, source: "lokaal", link: `train.html?id=${encodeURIComponent(s.id)}`,
     });
   }
+  // Vangnet: een gestarte training waarvan de lijst-invoer is kwijtgeraakt, komt toch terug onder Actief.
+  // Een verwijderde training heeft geen plan meer (zie removeSession), dus die komt niet terug.
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith("fw-plan-")) continue;
+      const id = key.slice("fw-plan-".length);
+      if (seen.has(id)) continue;
+      const plan = loadPlan(id);
+      const state = loadState(id) || {};
+      if (!plan || !state.startMs) continue; // ongestarte plannen tellen niet mee
+      const total = plan.blocks.reduce((n, b) => n + b.exercises.reduce((m, e) => m + e.sets.length, 0), 0);
+      const doneAll = total > 0 && Object.keys(state.done || {}).length >= total;
+      out.push({
+        id, title: plan.title, date: plan.date, status: doneAll ? "klaar" : "bezig", plan,
+        state, source: "lokaal", link: `train.html?id=${encodeURIComponent(id)}`,
+      });
+    }
+  } catch (e) {}
   // Afgeronde trainingen: in de repo staat de map workouts/done/ naast workouts/app/ (../done/).
   // In een artefact staat die map naast de pagina (done/). Het eerste pad dat werkt, wint.
   const bases = ["../done/", "done/"];

@@ -61,10 +61,14 @@ function writeTrash(list) {
 
 // Verplaatst de training naar de prullenbak en haalt hem uit de lijst.
 export function trashSession(id) {
-  const s = listSessions().find((x) => x.id === id);
+  const plan = loadPlan(id);
+  const st = loadState(id) || {};
+  // Ook als de lijst-invoer al kwijt is: het plan bepaalt of de training bestaat.
+  const s = listSessions().find((x) => x.id === id)
+    || (plan ? { id, title: plan.title, date: plan.date, startMs: st.startMs, status: "bezig" } : null);
   if (!s) return;
   const trash = listTrash().filter((x) => x.id !== id);
-  trash.unshift({ ...s, plan: loadPlan(id), state: loadState(id) || {}, deletedAt: new Date().toISOString() });
+  trash.unshift({ ...s, plan, state: st, deletedAt: new Date().toISOString() });
   writeTrash(trash);
   removeSession(id);
 }
