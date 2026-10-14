@@ -17,6 +17,7 @@
 .item .m.ok { color: var(--accent); }
 .item .acts { display: flex; gap: 6px; flex-wrap: wrap; }
 .empty { font-size: 15px; color: var(--muted); }
+.linkbtn { align-self: flex-start; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 13px; color: var(--muted); text-decoration: underline; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -42,7 +43,7 @@
 
 <script type="module">
 import { renderNav } from "./nav.js";
-import { trashSession, loadPlan, savePlan } from "./store.js";
+import { trashSession, loadPlan, savePlan, hideGithub } from "./store.js";
 import { allRecords } from "./stats.js";
 import { initPage, t, locale } from "./i18n.js";
 
@@ -75,6 +76,9 @@ function row(rec) {
         <div class="acts"><button class="btn small sure" type="button" data-delok="${esc(rec.id)}">${t("tr.yesToTrash")}</button><button class="btn small" type="button" data-delno="1">${t("tr.cancel")}</button></div></div>`;
     }
     acts += `<button class="btn small danger" type="button" data-del="${esc(rec.id)}">${t("tr.delete")}</button>`;
+  } else if (klaar) {
+    // Training uit de repo: verbergen op dit apparaat (de repo blijft staan), zonder bevestiging; terug te zetten in Instellingen.
+    acts += `<button class="linkbtn" type="button" data-hide="${esc(rec.id)}">${t("tr.hide")}</button>`;
   }
   const status = klaar ? (onGh ? `${t("tr.statusDone")} · ${t("tr.onGithub")}` : t("tr.statusDone")) : t("tr.statusActive");
   return `<div class="item"><span class="t">${esc(rec.title)}</span><span class="m ${klaar ? "ok" : ""}">${meta} · ${status}</span><div class="acts">${acts}</div></div>`;
@@ -97,8 +101,16 @@ async function load() {
 }
 
 document.querySelector(".wrap").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-again],[data-del],[data-delok],[data-delno]");
+  const b = e.target.closest("[data-again],[data-del],[data-delok],[data-delno],[data-hide]");
   if (!b) return;
+  if (b.dataset.hide) {
+    const rec = recs.find((r) => r.id === b.dataset.hide && r.source === "GitHub");
+    if (!rec) return;
+    hideGithub(rec.id, rec.title);
+    recs = recs.filter((r) => !(r.id === rec.id && r.source === "GitHub"));
+    render();
+    return;
+  }
   if (b.dataset.again) {
     // Nieuwe training op basis van het plan: een kopie met nieuw nummer en lege voortgang.
     // De afgeronde training blijft staan.

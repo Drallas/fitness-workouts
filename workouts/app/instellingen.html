@@ -93,6 +93,8 @@
     <p class="note" data-i18n="trash.text">Deleted trainings wait here until you wipe them for good. You can restore them in the meantime. They no longer count in the lists or the history.</p>
     <ul class="list" id="trashlist"></ul>
     <div id="trashemptybox"></div>
+    <p class="note" style="margin-top:16px" data-i18n="hid.text">Trainings from GitHub that you hid on this device. GitHub keeps them. Restore brings them back here.</p>
+    <ul class="list" id="hidlist"></ul>
   </section>
 
   <section class="card warn">
@@ -108,7 +110,7 @@
 
 <script type="module">
 import { renderNav } from "./nav.js";
-import { listSessions, listTrash, trashSession, restoreTrash, purgeTrash, emptyTrash } from "./store.js";
+import { listSessions, listTrash, trashSession, restoreTrash, purgeTrash, emptyTrash, listHidden, unhideGithub } from "./store.js";
 import { getToken, setToken, pendingRecords, syncToGithub } from "./github.js";
 import { initPage, t, locale } from "./i18n.js";
 import { downloadExport, exportLocal, parseImport, importItems } from "./backup.js";
@@ -219,6 +221,22 @@ document.addEventListener("click", (e) => {
   if (b.id === "emptytrashok") { emptyTrash(); pendingEmpty = false; $("msg").textContent = t("trash.emptied"); renderTrash(); }
 });
 
+// Verborgen trainingen uit de repo: op dit apparaat verborgen, terug te zetten.
+function renderHidden() {
+  const hid = listHidden();
+  const list = $("hidlist");
+  list.innerHTML = hid.length
+    ? hid.map((h) => `<li><span class="nm">${esc(h.title)}</span><div class="row"><button class="btn small" type="button" data-unhide="${esc(h.id)}">${t("hid.restore")}</button></div></li>`).join("")
+    : `<li class="note">${t("hid.none")}</li>`;
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-unhide]");
+  if (!b) return;
+  unhideGithub(b.dataset.unhide);
+  $("msg").textContent = t("hid.restored");
+  renderHidden();
+});
+
 // GitHub: token opslaan, en afgeronde trainingen naar workouts/done/ zetten.
 function ghStatus(text) { $("ghstatus").textContent = text; }
 function syncFail(err) {
@@ -299,6 +317,7 @@ $("bkfile").addEventListener("change", async (e) => {
 bind();
 renderWeights();
 renderTrash();
+renderHidden();
 </script>
 </body>
 </html>

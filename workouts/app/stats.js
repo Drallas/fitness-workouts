@@ -1,6 +1,6 @@
 // Gegevens over alle trainingen: lokaal (op dit apparaat) en afgerond in de repo (workouts/done/).
 // Hieruit komen de geschiedenis en de persoonlijke records.
-import { listSessions, loadPlan, loadState } from "./store.js";
+import { listSessions, loadPlan, loadState, listHidden } from "./store.js";
 
 export function loadProfile() {
   try { return JSON.parse(localStorage.getItem("fw-profile")) || {}; } catch (e) { return {}; }
@@ -53,7 +53,9 @@ export async function allRecords() {
     } catch (e) {}
   }
   if (index) {
+    const hidden = new Set(listHidden().map((h) => h.id));
     for (const item of index) {
+      if (hidden.has(item.id)) continue;
       try {
         const rec = await (await fetch(new URL(base + item.file, import.meta.url))).json();
         out.push({
