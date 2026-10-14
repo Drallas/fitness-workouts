@@ -81,7 +81,8 @@ input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; b
 #info { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 16px; width: min(92vw, 420px); max-height: 85vh; }
 #info::backdrop { background: rgba(8, 14, 20, .5); }
 #info .infobody { display: flex; flex-direction: column; gap: 10px; }
-#info .infopic { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); }
+#info .infopic-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+#info .infopic { width: 180px; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); }
 #info .ytlink { font-size: 15px; font-weight: 600; color: var(--accent); }
 .reset { align-self: flex-start; font: inherit; font-size: 14px; min-height: 40px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 </style>

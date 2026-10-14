@@ -23,19 +23,43 @@ const exById = {};   // oefening-id -> oefening, voor de uitleg-overlay
 
 // Uitleg-overlay: plaatje (als die er is) en één YouTube-zoeklink. Sluit met de knop of met Escape.
 const infoDlg = () => document.getElementById("info");
+// Oefenfoto: één bron, wger.de (open oefeningendatabase). Het zoekresultaat wordt op dit apparaat onthouden.
+const PIC_KEY = "fw-pics";
+function cachedPic(term) {
+  try { return (JSON.parse(localStorage.getItem(PIC_KEY)) || {})[term]; } catch (e) { return undefined; }
+}
+function cachePic(term, url) {
+  try {
+    const c = JSON.parse(localStorage.getItem(PIC_KEY)) || {};
+    c[term] = url;
+    localStorage.setItem(PIC_KEY, JSON.stringify(c));
+  } catch (e) {}
+}
+async function findPic(term) {
+  const hit = cachedPic(term);
+  if (hit !== undefined) return hit;
+  const r = await fetch("https://wger.de/api/v2/exercise/search/?term=" + encodeURIComponent(term));
+  const j = await r.json();
+  const url = j.suggestions?.[0]?.data?.image_thumbnail || "";
+  cachePic(term, url); // ook "geen foto" wordt onthouden, zodat we niet elke keer opnieuw zoeken
+  return url;
+}
+
 function openInfo(ex) {
   const d = infoDlg();
   const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " techniek");
-  const pic = ex.img
-    ? `<img class="infopic" src="${esc(ex.img)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()">`
-    : "";
   d.querySelector(".infobody").innerHTML = `
     <h2>${esc(ex.name)}</h2>
     ${ex.dumbbell ? `<p class="note">${t("unit.perDumbbell")}</p>` : ""}
-    ${pic}
+    <div class="infopic-slot"></div>
     <a class="ytlink" href="${esc(yt)}" target="_blank" rel="noopener">${t("train.searchYt")} ↗</a>
     <button class="btn" type="button" data-close>${t("train.close")}</button>`;
   d.showModal();
+  const slot = d.querySelector(".infopic-slot");
+  findPic(ex.wger || ex.name).then((url) => {
+    if (!url) return;
+    slot.innerHTML = `<img class="infopic" src="${esc(url)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()"><a class="note" href="https://wger.de" target="_blank" rel="noopener">wger.de</a>`;
+  }).catch(() => { /* geen verbinding: alleen de YouTube-link */ });
 }
 document.addEventListener("click", (e) => {
   const info = e.target.closest("[data-info]");

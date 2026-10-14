@@ -50,11 +50,18 @@
     </div>
   </section>
 
+  <section class="card">
+    <h2 data-i18n="trash.title">Trash</h2>
+    <p class="note" data-i18n="trash.text">Deleted trainings wait here until you wipe them for good. You can restore them in the meantime. They no longer count in the lists or the history.</p>
+    <ul class="list" id="trashlist"></ul>
+    <div id="trashemptybox"></div>
+  </section>
+
   <section class="card warn">
     <h2 data-i18n="set.danger">Danger zone</h2>
-    <p class="note" data-i18n="set.dangerText">Deletes all trainings on this device, with plan and progress. Trainings on GitHub stay.</p>
+    <p class="note" data-i18n="trash.dangerText">Moves all trainings on this device to the trash. Trainings on GitHub stay.</p>
     <div id="allbox">
-      <button class="btn danger" id="wisall" type="button" data-i18n="set.clearAll">Delete all trainings on this device</button>
+      <button class="btn danger" id="wisall" type="button" data-i18n="trash.allToTrash">Move all trainings on this device to the trash</button>
     </div>
   </section>
 
@@ -63,7 +70,7 @@
 
 <script type="module">
 import { renderNav } from "./nav.js";
-import { listSessions, removeSession } from "./store.js";
+import { listSessions, listTrash, trashSession, restoreTrash, purgeTrash, emptyTrash } from "./store.js";
 import { initPage, t, locale } from "./i18n.js";
 
 initPage();
@@ -109,7 +116,7 @@ function askInline(boxId, text, okLabel, onOk) {
 
 function reset() {
   $("histbox").innerHTML = `<button class="btn" id="wishist" type="button">${t("set.clearWeights")}</button>`;
-  $("allbox").innerHTML = `<button class="btn danger" id="wisall" type="button">${t("set.clearAll")}</button>`;
+  $("allbox").innerHTML = `<button class="btn danger" id="wisall" type="button">${t("trash.allToTrash")}</button>`;
   bind();
 }
 
@@ -124,15 +131,57 @@ function bind() {
   $("wisall").addEventListener("click", () => {
     const n = listSessions().length;
     if (!n) { $("msg").textContent = t("set.noTrainings"); return; }
-    askInline("allbox", t("set.clearAllAsk", { n }), t("set.yesClearAll"), () => {
-      for (const s of listSessions()) removeSession(s.id);
-      $("msg").textContent = t("set.allCleared");
+    askInline("allbox", t("trash.allToTrashAsk", { n }), t("trash.yesToTrash"), () => {
+      for (const s of listSessions()) trashSession(s.id);
+      $("msg").textContent = t("trash.allMoved");
+      renderTrash();
     });
   });
 }
 
+// Prullenbak: verwijderde trainingen terugzetten, of één voor één of allemaal definitief wissen.
+let pendingPurge = null;   // id van de training die op bevestiging wacht
+let pendingEmpty = false;  // alles-wissen wacht op bevestiging
+
+function renderTrash() {
+  const trash = listTrash();
+  const list = $("trashlist");
+  if (!trash.length) {
+    list.innerHTML = `<li class="note">${t("trash.empty")}</li>`;
+    $("trashemptybox").innerHTML = "";
+    pendingEmpty = false;
+    return;
+  }
+  list.innerHTML = trash.map((x) => {
+    if (pendingPurge === x.id) {
+      return `<li><span class="warn-text">${esc(t("trash.purgeAsk", { title: x.title }))}</span>
+        <div class="row"><button class="btn small sure" type="button" data-purgeok="${esc(x.id)}">${t("trash.yesPurge")}</button><button class="btn small" type="button" data-purgeno="1">${t("set.cancel")}</button></div></li>`;
+    }
+    const when = new Date(x.deletedAt).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
+    return `<li><span class="nm">${esc(x.title)}</span><span class="status">${t("trash.deleted", { date: when })}</span>
+      <div class="row"><button class="btn small" type="button" data-restore="${esc(x.id)}">${t("trash.restore")}</button><button class="btn small danger" type="button" data-purge="${esc(x.id)}">${t("trash.purge")}</button></div></li>`;
+  }).join("");
+  $("trashemptybox").innerHTML = pendingEmpty
+    ? `<p class="warn-text">${esc(t("trash.emptyAllAsk", { n: trash.length }))}</p>
+       <div class="row" style="margin-top:8px"><button class="btn sure" type="button" id="emptytrashok">${t("trash.yesEmpty")}</button><button class="btn" type="button" id="emptytrashno">${t("set.cancel")}</button></div>`
+    : `<button class="btn danger" type="button" id="emptytrash">${t("trash.emptyAll")}</button>`;
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-restore],[data-purge],[data-purgeok],[data-purgeno],#emptytrash,#emptytrashok,#emptytrashno");
+  if (!b) return;
+  if (b.dataset.restore) { restoreTrash(b.dataset.restore); $("msg").textContent = t("trash.restored"); renderTrash(); return; }
+  if (b.dataset.purge) { pendingPurge = b.dataset.purge; renderTrash(); return; }
+  if (b.dataset.purgeno) { pendingPurge = null; renderTrash(); return; }
+  if (b.dataset.purgeok) { purgeTrash(b.dataset.purgeok); pendingPurge = null; $("msg").textContent = t("trash.purged"); renderTrash(); return; }
+  if (b.id === "emptytrash") { pendingEmpty = true; renderTrash(); return; }
+  if (b.id === "emptytrashno") { pendingEmpty = false; renderTrash(); return; }
+  if (b.id === "emptytrashok") { emptyTrash(); pendingEmpty = false; $("msg").textContent = t("trash.emptied"); renderTrash(); }
+});
+
 bind();
 renderWeights();
+renderTrash();
 </script>
 </body>
 </html>

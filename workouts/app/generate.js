@@ -97,7 +97,7 @@ export function generate(input, lib, history = {}, now = new Date()) {
           })),
         };
         if (e.dumbbell) ex.dumbbell = true;
-        if (e.img) { ex.img = e.img; ex.credit = e.credit; }
+        if (e.wger) ex.wger = e.wger;
         return ex;
       });
     return { tag: String.fromCharCode(65 + gi), title: label, exercises };

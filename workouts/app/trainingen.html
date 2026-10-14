@@ -48,7 +48,7 @@
 
 <script type="module">
 import { renderNav } from "./nav.js";
-import { removeSession, loadPlan, savePlan } from "./store.js";
+import { trashSession, loadPlan, savePlan } from "./store.js";
 import { allRecords } from "./stats.js";
 import { initPage, t, locale } from "./i18n.js";
 
@@ -74,8 +74,8 @@ function row(rec) {
   if (klaar) acts += `<button class="btn small" type="button" data-again="${esc(rec.id)}" data-src="${local ? "lokaal" : "github"}" data-link="${esc(rec.link)}">${t("tr.again")}</button>`;
   if (local) {
     if (pendingDel === rec.id) {
-      return `<div class="item"><span class="warn-text">${esc(t("tr.deleteAsk", { title: rec.title }))}</span>
-        <div class="acts"><button class="btn small sure" type="button" data-delok="${esc(rec.id)}">${t("tr.deleteYes")}</button><button class="btn small" type="button" data-delno="1">${t("tr.cancel")}</button></div></div>`;
+      return `<div class="item"><span class="warn-text">${esc(t("tr.toTrashAsk", { title: rec.title }))}</span>
+        <div class="acts"><button class="btn small sure" type="button" data-delok="${esc(rec.id)}">${t("tr.yesToTrash")}</button><button class="btn small" type="button" data-delno="1">${t("tr.cancel")}</button></div></div>`;
     }
     acts += `<button class="btn small danger" type="button" data-del="${esc(rec.id)}">${t("tr.delete")}</button>`;
   }
@@ -119,7 +119,7 @@ document.querySelector(".wrap").addEventListener("click", (e) => {
   if (b.dataset.del) { pendingDel = b.dataset.del; render(); return; }
   if (b.dataset.delno) { pendingDel = null; render(); return; }
   if (b.dataset.delok) {
-    removeSession(b.dataset.delok);
+    trashSession(b.dataset.delok);
     pendingDel = null;
     recs = recs.filter((r) => r.id !== b.dataset.delok);
     render();
