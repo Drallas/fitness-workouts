@@ -5,8 +5,9 @@ import { listSessions, loadPlan, loadState } from "./store.js";
 export function loadProfile() {
   try { return JSON.parse(localStorage.getItem("fw-profile")) || {}; } catch (e) { return {}; }
 }
+// Geeft false terug als het opslaan mislukt (bv. geen opslagruimte of geblokkeerde opslag), zodat de pagina dat kan melden.
 export function saveProfile(p) {
-  try { localStorage.setItem("fw-profile", JSON.stringify(p)); } catch (e) {}
+  try { localStorage.setItem("fw-profile", JSON.stringify(p)); return true; } catch (e) { return false; }
 }
 
 // Alle trainingen die je kunt bekijken. Elk item: { id, title, date, status, plan, state, source, link }.

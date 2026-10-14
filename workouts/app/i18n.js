@@ -308,6 +308,7 @@ const DICT = {
     "prof.photoErr": "That photo didn't work. Try another one.",
     "prof.photoRemoved": "Photo removed.",
     "prof.saved": "Saved.",
+    "prof.saveErr": "Could not save on this device. Storage is blocked or full, so the name is not kept.",
   },
 
   nl: {
@@ -570,6 +571,7 @@ const DICT = {
     "prof.photoErr": "Die foto lukt niet. Probeer een andere.",
     "prof.photoRemoved": "Foto verwijderd.",
     "prof.saved": "Opgeslagen.",
+    "prof.saveErr": "Opslaan op dit apparaat lukt niet. Opslagruimte is vol of geblokkeerd, dus de naam wordt niet bewaard.",
   },
 
   es: {
@@ -832,5 +834,6 @@ const DICT = {
     "prof.photoErr": "Esa foto no funciona. Prueba con otra.",
     "prof.photoRemoved": "Foto quitada.",
     "prof.saved": "Guardado.",
+    "prof.saveErr": "No se pudo guardar en este dispositivo. El almacenamiento está bloqueado o lleno, así que el nombre no se conserva.",
   },
 };

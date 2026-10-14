@@ -87,9 +87,9 @@ $("photo").addEventListener("change", async (e) => {
   if (!f) return;
   try {
     profile.photo = await shrink(f);
-    saveProfile(profile);
+    const ok = saveProfile(profile);
     show();
-    $("msg").textContent = t("prof.photoSaved");
+    $("msg").textContent = ok ? t("prof.photoSaved") : t("prof.saveErr");
     renderNav("profiel");
   } catch (err) { $("msg").textContent = t("prof.photoErr"); }
 });
@@ -104,10 +104,10 @@ $("rmphoto").addEventListener("click", () => {
 
 $("save").addEventListener("click", () => {
   profile.name = $("name").value.trim();
-  saveProfile(profile);
+  const ok = saveProfile(profile);
   show();
   renderNav("profiel");
-  $("msg").textContent = t("prof.saved");
+  $("msg").textContent = ok ? t("prof.saved") : t("prof.saveErr");
 });
 
 show();
