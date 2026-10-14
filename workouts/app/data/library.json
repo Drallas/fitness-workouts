@@ -9,7 +9,11 @@
       "subtype": "latPulldown",
       "dumbbell": false,
       "rest": 90,
-      "wger": "Lat pulldown"
+      "wger": "Lat pulldown",
+      "img": [
+        "img/ex/lat-pulldown-0.jpg",
+        "img/ex/lat-pulldown-1.jpg"
+      ]
     },
     {
       "id": "cable-row",
@@ -20,7 +24,11 @@
       "subtype": "cableRowStanding",
       "dumbbell": false,
       "rest": 90,
-      "wger": "Seated cable row"
+      "wger": "Seated cable row",
+      "img": [
+        "img/ex/cable-row-0.jpg",
+        "img/ex/cable-row-1.jpg"
+      ]
     },
     {
       "id": "db-row",
@@ -31,7 +39,11 @@
       "subtype": "dumbbellRow",
       "dumbbell": true,
       "rest": 60,
-      "wger": "One-arm dumbbell row"
+      "wger": "One-arm dumbbell row",
+      "img": [
+        "img/ex/db-row-0.jpg",
+        "img/ex/db-row-1.jpg"
+      ]
     },
     {
       "id": "face-pull",
@@ -42,7 +54,11 @@
       "subtype": "facePull",
       "dumbbell": false,
       "rest": 60,
-      "wger": "Face pull"
+      "wger": "Face pull",
+      "img": [
+        "img/ex/face-pull-0.jpg",
+        "img/ex/face-pull-1.jpg"
+      ]
     },
     {
       "id": "barbell-curl",
@@ -53,7 +69,11 @@
       "subtype": "barbellBicepsCurl",
       "dumbbell": false,
       "rest": 60,
-      "wger": "Barbell curl"
+      "wger": "Barbell curl",
+      "img": [
+        "img/ex/barbell-curl-0.jpg",
+        "img/ex/barbell-curl-1.jpg"
+      ]
     },
     {
       "id": "db-curl",
@@ -64,7 +84,11 @@
       "subtype": "alternatingDumbbellBicepsCurl",
       "dumbbell": true,
       "rest": 60,
-      "wger": "Dumbbell alternate bicep curl"
+      "wger": "Dumbbell alternate bicep curl",
+      "img": [
+        "img/ex/db-curl-0.jpg",
+        "img/ex/db-curl-1.jpg"
+      ]
     },
     {
       "id": "cable-curl",
@@ -75,7 +99,11 @@
       "subtype": "cableBicepsCurl",
       "dumbbell": false,
       "rest": 60,
-      "wger": "Cable curl"
+      "wger": "Cable curl",
+      "img": [
+        "img/ex/cable-curl-0.jpg",
+        "img/ex/cable-curl-1.jpg"
+      ]
     },
     {
       "id": "back-squat",
@@ -86,7 +114,11 @@
       "subtype": "barbellBackSquat",
       "dumbbell": false,
       "rest": 120,
-      "wger": "Barbell squat"
+      "wger": "Barbell squat",
+      "img": [
+        "img/ex/back-squat-0.jpg",
+        "img/ex/back-squat-1.jpg"
+      ]
     },
     {
       "id": "leg-press",
@@ -97,7 +129,11 @@
       "subtype": "legPress",
       "dumbbell": false,
       "rest": 120,
-      "wger": "Leg press"
+      "wger": "Leg press",
+      "img": [
+        "img/ex/leg-press-0.jpg",
+        "img/ex/leg-press-1.jpg"
+      ]
     },
     {
       "id": "rdl",
@@ -108,7 +144,11 @@
       "subtype": "barbellStraightLegDeadlift",
       "dumbbell": false,
       "rest": 120,
-      "wger": "Romanian deadlift"
+      "wger": "Romanian deadlift",
+      "img": [
+        "img/ex/rdl-0.jpg",
+        "img/ex/rdl-1.jpg"
+      ]
     },
     {
       "id": "leg-curl",
@@ -119,7 +159,11 @@
       "subtype": "legCurl",
       "dumbbell": false,
       "rest": 60,
-      "wger": "Lying leg curl"
+      "wger": "Lying leg curl",
+      "img": [
+        "img/ex/leg-curl-0.jpg",
+        "img/ex/leg-curl-1.jpg"
+      ]
     },
     {
       "id": "bench-press",
@@ -130,7 +174,11 @@
       "subtype": "barbellBenchPress",
       "dumbbell": false,
       "rest": 90,
-      "wger": "Barbell bench press"
+      "wger": "Barbell bench press",
+      "img": [
+        "img/ex/bench-press-0.jpg",
+        "img/ex/bench-press-1.jpg"
+      ]
     },
     {
       "id": "incline-db",
@@ -141,7 +189,11 @@
       "subtype": "inclineDumbbellBenchPress",
       "dumbbell": true,
       "rest": 60,
-      "wger": "Incline dumbbell press"
+      "wger": "Incline dumbbell press",
+      "img": [
+        "img/ex/incline-db-0.jpg",
+        "img/ex/incline-db-1.jpg"
+      ]
     },
     {
       "id": "shoulder-press",
@@ -152,7 +204,11 @@
       "subtype": "dumbbellShoulderPress",
       "dumbbell": true,
       "rest": 75,
-      "wger": "Dumbbell shoulder press"
+      "wger": "Dumbbell shoulder press",
+      "img": [
+        "img/ex/shoulder-press-0.jpg",
+        "img/ex/shoulder-press-1.jpg"
+      ]
     },
     {
       "id": "lateral-raise",
@@ -163,7 +219,11 @@
       "subtype": "dumbbellLateralRaise",
       "dumbbell": true,
       "rest": 45,
-      "wger": "Dumbbell lateral raise"
+      "wger": "Dumbbell lateral raise",
+      "img": [
+        "img/ex/lateral-raise-0.jpg",
+        "img/ex/lateral-raise-1.jpg"
+      ]
     },
     {
       "id": "dips",
@@ -174,7 +234,11 @@
       "subtype": "bodyWeightDip",
       "dumbbell": false,
       "rest": 90,
-      "wger": "Dips"
+      "wger": "Dips",
+      "img": [
+        "img/ex/dips-0.jpg",
+        "img/ex/dips-1.jpg"
+      ]
     },
     {
       "id": "pressdown",
@@ -185,7 +249,11 @@
       "subtype": "tricepsPressdown",
       "dumbbell": false,
       "rest": 60,
-      "wger": "Triceps pushdown"
+      "wger": "Triceps pushdown",
+      "img": [
+        "img/ex/pressdown-0.jpg",
+        "img/ex/pressdown-1.jpg"
+      ]
     },
     {
       "id": "hanging-knee",
@@ -196,7 +264,11 @@
       "subtype": "hangingKneeRaise",
       "dumbbell": false,
       "rest": 45,
-      "wger": "Hanging knee raise"
+      "wger": "Hanging knee raise",
+      "img": [
+        "img/ex/hanging-knee-0.jpg",
+        "img/ex/hanging-knee-1.jpg"
+      ]
     }
   ],
   "groups": [

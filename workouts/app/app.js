@@ -23,35 +23,6 @@ const exById = {};   // oefening-id -> oefening, voor de uitleg-overlay
 
 // Uitleg-overlay: plaatje (als die er is) en één YouTube-zoeklink. Sluit met de knop of met Escape.
 const infoDlg = () => document.getElementById("info");
-// Oefenfoto: één bron, wger.de (open oefeningendatabase). Het zoekresultaat wordt op dit apparaat onthouden.
-const PIC_KEY = "fw-pics";
-function cachedPic(term) {
-  try { return (JSON.parse(localStorage.getItem(PIC_KEY)) || {})[term]; } catch (e) { return undefined; }
-}
-function cachePic(term, url) {
-  try {
-    const c = JSON.parse(localStorage.getItem(PIC_KEY)) || {};
-    c[term] = url;
-    localStorage.setItem(PIC_KEY, JSON.stringify(c));
-  } catch (e) {}
-}
-// Probeert de zoektermen na elkaar. Gooit een fout als wger.de niet bereikbaar is; geeft "" als er geen foto is.
-async function findPic(terms) {
-  for (const term of terms) {
-    const hit = cachedPic(term);
-    if (hit) return hit;
-    if (hit === "") continue; // eerder gezocht, geen foto
-    const r = await fetch("https://wger.de/api/v2/exercise/search/?term=" + encodeURIComponent(term));
-    if (!r.ok) throw new Error(String(r.status));
-    const j = await r.json();
-    // Niet alleen de eerste treffer: die heeft soms geen foto, een latere wel.
-    const url = (j.suggestions || []).map((s) => s.data?.image_thumbnail).find(Boolean) || "";
-    cachePic(term, url);
-    if (url) return url;
-  }
-  return "";
-}
-
 function openInfo(ex) {
   const d = infoDlg();
   const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " techniek");
@@ -63,26 +34,21 @@ function openInfo(ex) {
     <button class="btn" type="button" data-close>${t("train.close")}</button>`;
   d.showModal();
   const slot = d.querySelector(".infopic-slot");
-  slot.innerHTML = `<p class="note">${t("pic.loading")}</p>`;
-  // Zoektermen: de wger-term, dan de naam zonder haakjes (bv. "Lat pulldown (breed)" → "Lat pulldown").
-  const terms = [...new Set([ex.wger, libTerm(ex.subtype), ex.name.replace(/\s*\(.*?\)\s*/g, " ").trim(), ex.name].filter(Boolean))];
-  findPic(terms).then((url) => {
-    if (!url) { slot.innerHTML = `<p class="note">${t("pic.none")}</p>`; return; }
-    slot.innerHTML = `<img class="infopic" src="${esc(url)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.parentNode.innerHTML='<p class=&quot;note&quot;>${esc(t("pic.none"))}</p>'"><a class="note" href="https://wger.de" target="_blank" rel="noopener">wger.de</a>`;
-  }).catch(() => { slot.innerHTML = `<p class="note">${t("pic.error")}</p>`; });
+  // Foto's staan in de app (img/ex/), gekoppeld aan de bibliotheek via het subtype.
+  const imgs = localPics(ex);
+  slot.innerHTML = imgs.length
+    ? imgs.map((src) => `<img class="infopic" src="${esc(src)}" alt="${esc(ex.name)}" loading="lazy">`).join("") + `<p class="note">${t("pic.credit")}</p>`
+    : `<p class="note">${t("pic.none")}</p>`;
 }
 
-// Zoekterm per oefening uit de bibliotheek, op basis van het Garmin-subtype (werkt ook voor de pushdag).
+// Bibliotheek met foto's (data/library.json); laadt vanzelf bij het starten van de pagina.
 let LIB = null;
-function libTerm(subtype) {
-  if (!LIB) {
-    LIB = [];
-    fetch(new URL("./data/library.json", import.meta.url)).then((r) => r.json()).then((j) => { LIB = j.exercises || []; }).catch(() => {});
-  }
-  if (!subtype) return null;
-  return LIB.find((x) => x.subtype === subtype)?.wger || null;
+// Foto's uit de bibliotheek (veld img), gekoppeld op subtype of id.
+function localPics(ex) {
+  const hit = (LIB || []).find((x) => (ex.subtype && x.subtype === ex.subtype) || x.id === ex.id);
+  return hit?.img || [];
 }
-libTerm(); // laad de bibliotheek alvast, zodat de eerste overlay ook de juiste zoekterm heeft
+fetch(new URL("./data/library.json", import.meta.url)).then((r) => r.json()).then((j) => { LIB = j.exercises || []; }).catch(() => {});
 document.addEventListener("click", (e) => {
   const info = e.target.closest("[data-info]");
   if (info) { openInfo(exById[info.dataset.info]); return; }
