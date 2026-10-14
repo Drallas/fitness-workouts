@@ -13,6 +13,7 @@ const fmtTime = (ms) => new Date(ms).toLocaleTimeString("nl-NL", { hour: "2-digi
 const fmtSec = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 const fmtNum = (n) => String(n).replace(".", ",");
 
+let READONLY = false; // afgeronde training uit een bestand: alleen bekijken en exporteren
 let W; // workout JSON
 let KEY;
 let state = { startMs: null, vals: {}, done: {}, pauses: [] };
@@ -20,6 +21,7 @@ const setIndex = {}; // setId -> { ex, set, i }
 
 // Pas bewaren als de training gestart is. Daarvoor blijft alles in het geheugen van de pagina.
 function save() {
+  if (READONLY) return;
   try {
     if (state.startMs) localStorage.setItem(KEY, JSON.stringify(state));
     else localStorage.removeItem(KEY);
@@ -149,11 +151,11 @@ function updateProgress() {
   let info = state.startMs ? `Gestart om ${fmtTime(state.startMs)}` : sessionStart() ? `Starttijd schatting ${fmtTime(sessionStart())}` : "Nog niet gestart";
   if (isPaused()) info += " · gepauzeerd";
   $("startinfo").textContent = info;
-  if (state.startMs) setStatus(W.id, done === total && total ? "klaar" : "bezig");
+  if (state.startMs && !READONLY) setStatus(W.id, done === total && total ? "klaar" : "bezig");
   // Export is er altijd, ook voor je de eerste set hebt afgevinkt.
   $("exportrow").hidden = false;
   $("startbtn").hidden = !!state.startMs;
-  $("pausebtn").hidden = !state.startMs;
+  $("pausebtn").hidden = !state.startMs || READONLY;
   $("pausebtn").textContent = isPaused() ? "Hervat training" : "Pauze";
   $("pausebtn").setAttribute("aria-pressed", String(isPaused()));
 }
@@ -332,6 +334,16 @@ $("fitbtn").addEventListener("click", async () => {
   }
 });
 
+// Afronden: de training krijgt de status afgerond en je downloadt een bestand met plan en resultaten.
+// Dat bestand zet Claude in de repo (workouts/done/), waarna de training op GitHub staat.
+$("finishbtn").addEventListener("click", () => {
+  if (!state.startMs) { $("msg").textContent = "Start de training eerst."; return; }
+  const rec = { versie: 1, plan: W, state, afgerond: new Date().toISOString() };
+  download(new Blob([JSON.stringify(rec, null, 2)], { type: "application/json" }), `${W.id}.json`);
+  setStatus(W.id, "klaar");
+  $("msg").textContent = "Training afgerond en in de lijst gezet. Stuur het gedownloade bestand naar Claude; dan komt de training op GitHub.";
+});
+
 document.querySelectorAll("[data-share]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const kind = btn.dataset.share;
@@ -374,7 +386,15 @@ function addDemoLinks(w) {
 (async function init() {
   const params = new URLSearchParams(location.search);
   let loaded = null;
-  if (params.get("id")) {
+  if (params.get("file")) {
+    // Afgeronde training uit de repo (workouts/done/): plan en resultaat, alleen bekijken.
+    try {
+      const rec = await (await fetch(new URL(params.get("file"), location.href))).json();
+      loaded = rec.plan;
+      state = { ...state, ...rec.state };
+      READONLY = true;
+    } catch (e) {}
+  } else if (params.get("id")) {
     // Een eerder gestarte training: het plan en de voortgang komen uit de opslag.
     loaded = loadPlan(params.get("id"));
   } else if (params.get("w") !== "push") {
@@ -386,13 +406,19 @@ function addDemoLinks(w) {
   KEY = `fw-${W.id}`;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) state = { ...state, ...JSON.parse(raw) };
+    if (raw && !READONLY) state = { ...state, ...JSON.parse(raw) };
   } catch (e) {}
-  if (state.startMs) upsertSession({ id: W.id, title: W.title, date: W.date, startMs: state.startMs, status: "bezig" });
+  if (state.startMs && !READONLY) upsertSession({ id: W.id, title: W.title, date: W.date, startMs: state.startMs, status: "bezig" });
   document.title = W.title;
   $("wtitle").textContent = W.title;
   $("wdate").textContent = new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   $("rule").hidden = !W.id.startsWith("push");
+  if (READONLY) {
+    $("reset").hidden = true;
+    $("startbtn").hidden = true;
+    $("pausebtn").hidden = true;
+    $("finishbtn").hidden = true;
+  }
   if (W.notes?.length) {
     $("notes").innerHTML = W.notes.map((n) => `<p>${esc(n)}</p>`).join("");
     $("notes").hidden = false;
