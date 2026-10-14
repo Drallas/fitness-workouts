@@ -41,7 +41,7 @@ export function initPage() {
 
 const DICT = {
   en: {
-    "brand": "Ferro",
+    "brand": "Ferro Fitness",
     "foot.copy": "© {year} Allard",
     "foot.code": "Source code on GitHub",
     "nav.start": "Start",
@@ -276,7 +276,7 @@ const DICT = {
   },
 
   nl: {
-    "brand": "Ferro",
+    "brand": "Ferro Fitness",
     "foot.copy": "© {year} Allard",
     "foot.code": "Broncode op GitHub",
     "nav.start": "Start",
@@ -503,7 +503,7 @@ const DICT = {
   },
 
   es: {
-    "brand": "Ferro",
+    "brand": "Ferro Fitness",
     "foot.copy": "© {year} Allard",
     "foot.code": "Código en GitHub",
     "nav.start": "Inicio",

@@ -1,4 +1,4 @@
-# Ferro
+# Ferro Fitness
 
 Krachttraining samenstellen, afvinken, FIT-bestanden voor Garmin maken en deelplaatjes voor Garmin, Strava en Instagram.
 
