@@ -94,22 +94,3 @@ export function purgeTrash(id) {
 export function emptyTrash() {
   writeTrash([]);
 }
-
-// Afgeronde trainingen uit de repo die je alleen op dit apparaat verbergt. De repo blijft ongewijzigd.
-const HIDDEN = "fw-hidden";
-
-export function listHidden() {
-  try { return JSON.parse(localStorage.getItem(HIDDEN)) || []; } catch (e) { return []; }
-}
-
-function writeHidden(list) {
-  try { localStorage.setItem(HIDDEN, JSON.stringify(list)); } catch (e) {}
-}
-
-export function hideGithub(id, title) {
-  writeHidden([...listHidden().filter((x) => x.id !== id), { id, title }]);
-}
-
-export function unhideGithub(id) {
-  writeHidden(listHidden().filter((x) => x.id !== id));
-}

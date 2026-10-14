@@ -94,6 +94,22 @@ export async function syncToGithub(records, onProgress = () => {}) {
   return n;
 }
 
+// Verwijdert een afgeronde training uit de repo: eerst de regel in index.json, daarna het bestand.
+export async function deleteFromGithub(id) {
+  const idx = await getFile(`${DIR}/index.json`);
+  if (!idx) throw new Error("404");
+  const index = JSON.parse(idx.text);
+  const entry = index.find((i) => i.id === id);
+  const file = entry ? entry.file : `${safeName(id)}.json`;
+  const path = `${DIR}/${file}`;
+  const next = index.filter((i) => i.id !== id);
+  await putFile(`${DIR}/index.json`, JSON.stringify(next, null, 2) + "\n", `Index workouts/done bijgewerkt (verwijderd: ${id})`, idx.sha);
+  const f = await getFile(path);
+  if (!f) return;
+  const r = await api(path, { method: "DELETE", body: { message: `Verwijderd: ${entry ? entry.title : id}`, sha: f.sha, branch: BRANCH } });
+  if (!r.ok) throw new Error(String(r.status));
+}
+
 // Terugvaloptie zonder token: één JSON-bestand downloaden, dat je zelf naar de repo kunt zetten.
 export function exportBlob(records) {
   const out = records.map((r) => ({ versie: 1, plan: r.plan, state: r.state }));

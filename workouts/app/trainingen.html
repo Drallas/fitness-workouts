@@ -38,13 +38,15 @@
   <section class="card" id="afgerond">
     <div class="section-title"><h2 data-i18n="tr.done">Finished</h2><span class="badge" id="nDone"></span></div>
     <div class="grp" id="lDone"></div>
+    <p class="empty" id="trmsg" role="status"></p>
   </section>
 </div>
 
 <script type="module">
 import { renderNav } from "./nav.js";
-import { trashSession, loadPlan, savePlan, hideGithub } from "./store.js";
+import { trashSession, loadPlan, savePlan } from "./store.js";
 import { allRecords } from "./stats.js";
+import { getToken, deleteFromGithub } from "./github.js";
 import { initPage, t, locale } from "./i18n.js";
 
 initPage();
@@ -53,6 +55,7 @@ const $ = (id) => document.getElementById(id);
 const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const dateLong = (d) => new Date(d + "T12:00:00").toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
 let pendingDel = null;
+let pendingGh = null; // id van de repo-training die op bevestiging wacht
 let recs = [];
 let ghIds = new Set(); // ids die al in de repo (workouts/done/) staan
 
@@ -76,9 +79,13 @@ function row(rec) {
         <div class="acts"><button class="btn small sure" type="button" data-delok="${esc(rec.id)}">${t("tr.yesToTrash")}</button><button class="btn small" type="button" data-delno="1">${t("tr.cancel")}</button></div></div>`;
     }
     acts += `<button class="btn small danger" type="button" data-del="${esc(rec.id)}">${t("tr.delete")}</button>`;
-  } else if (klaar) {
-    // Training uit de repo: verbergen op dit apparaat (de repo blijft staan), zonder bevestiging; terug te zetten in Instellingen.
-    acts += `<button class="linkbtn" type="button" data-hide="${esc(rec.id)}">${t("tr.hide")}</button>`;
+  } else if (klaar && rec.source === "GitHub") {
+    // Training uit de repo: verwijderen uit GitHub, met bevestiging. Klein gehouden als tekstlink.
+    if (pendingGh === rec.id) {
+      return `<div class="item"><span class="warn-text">${esc(t("tr.delGhAsk", { title: rec.title }))}</span>
+        <div class="acts"><button class="btn small sure" type="button" data-ghdelok="${esc(rec.id)}">${t("tr.yesDelGh")}</button><button class="btn small" type="button" data-ghdelno="1">${t("tr.cancel")}</button></div></div>`;
+    }
+    acts += `<button class="linkbtn" type="button" data-ghdel="${esc(rec.id)}">${t("tr.delGh")}</button>`;
   }
   const status = klaar ? (onGh ? `${t("tr.statusDone")} · ${t("tr.onGithub")}` : t("tr.statusDone")) : t("tr.statusActive");
   return `<div class="item"><span class="t">${esc(rec.title)}</span><span class="m ${klaar ? "ok" : ""}">${meta} · ${status}</span><div class="acts">${acts}</div></div>`;
@@ -101,14 +108,24 @@ async function load() {
 }
 
 document.querySelector(".wrap").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-again],[data-del],[data-delok],[data-delno],[data-hide]");
+  const b = e.target.closest("[data-again],[data-del],[data-delok],[data-delno],[data-ghdel],[data-ghdelok],[data-ghdelno]");
   if (!b) return;
-  if (b.dataset.hide) {
-    const rec = recs.find((r) => r.id === b.dataset.hide && r.source === "GitHub");
-    if (!rec) return;
-    hideGithub(rec.id, rec.title);
-    recs = recs.filter((r) => !(r.id === rec.id && r.source === "GitHub"));
-    render();
+  if (b.dataset.ghdel) { pendingGh = b.dataset.ghdel; render(); return; }
+  if (b.dataset.ghdelno) { pendingGh = null; render(); return; }
+  if (b.dataset.ghdelok) {
+    const id = b.dataset.ghdelok;
+    pendingGh = null;
+    $("trmsg").textContent = "";
+    if (!getToken()) { $("trmsg").textContent = t("tr.delGhNoToken"); render(); return; }
+    b.disabled = true;
+    deleteFromGithub(id).then(() => {
+      recs = recs.filter((r) => !(r.id === id && r.source === "GitHub"));
+      $("trmsg").textContent = t("tr.delGhDone");
+      render();
+    }).catch((err) => {
+      $("trmsg").textContent = t("tr.delGhErr", { code: /^\d+$/.test(err.message) ? err.message : "netwerk" });
+      render();
+    });
     return;
   }
   if (b.dataset.again) {
