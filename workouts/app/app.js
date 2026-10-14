@@ -56,11 +56,25 @@ function openInfo(ex) {
     <button class="btn" type="button" data-close>${t("train.close")}</button>`;
   d.showModal();
   const slot = d.querySelector(".infopic-slot");
-  findPic(ex.wger || ex.name).then((url) => {
-    if (!url) return;
-    slot.innerHTML = `<img class="infopic" src="${esc(url)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()"><a class="note" href="https://wger.de" target="_blank" rel="noopener">wger.de</a>`;
-  }).catch(() => { /* geen verbinding: alleen de YouTube-link */ });
+  slot.innerHTML = `<p class="note">${t("pic.loading")}</p>`;
+  const term = ex.wger || libTerm(ex.subtype) || ex.name;
+  findPic(term).then((url) => {
+    if (!url) { slot.innerHTML = `<p class="note">${t("pic.none")}</p>`; return; }
+    slot.innerHTML = `<img class="infopic" src="${esc(url)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.parentNode.innerHTML='<p class=&quot;note&quot;>${esc(t("pic.none"))}</p>'"><a class="note" href="https://wger.de" target="_blank" rel="noopener">wger.de</a>`;
+  }).catch(() => { slot.innerHTML = `<p class="note">${t("pic.error")}</p>`; });
 }
+
+// Zoekterm per oefening uit de bibliotheek, op basis van het Garmin-subtype (werkt ook voor de pushdag).
+let LIB = null;
+function libTerm(subtype) {
+  if (!LIB) {
+    LIB = [];
+    fetch(new URL("./data/library.json", import.meta.url)).then((r) => r.json()).then((j) => { LIB = j.exercises || []; }).catch(() => {});
+  }
+  if (!subtype) return null;
+  return LIB.find((x) => x.subtype === subtype)?.wger || null;
+}
+libTerm(); // laad de bibliotheek alvast, zodat de eerste overlay ook de juiste zoekterm heeft
 document.addEventListener("click", (e) => {
   const info = e.target.closest("[data-info]");
   if (info) { openInfo(exById[info.dataset.info]); return; }
