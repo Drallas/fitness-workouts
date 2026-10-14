@@ -15,6 +15,7 @@
 .koppel:first-child { padding-top: 0; }
 .koppel .nm { font-weight: 600; font-size: 16px; }
 .status { font-family: var(--font-num); font-size: 13px; color: var(--muted); }
+#weights .nm { font-weight: 600; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -43,6 +44,7 @@
   <section class="card">
     <h2 data-i18n="set.weights">Start weights</h2>
     <p class="note" data-i18n="set.weightsText">The weights the app uses as start weight for a new workout, overwritten by what you entered yourself. Clearing resets them to the Strava values. Your history itself stays on the History page.</p>
+    <ul class="list" id="weights"></ul>
     <div id="histbox">
       <button class="btn" id="wishist" type="button" data-i18n="set.clearWeights">Clear entered start weights</button>
     </div>
@@ -62,11 +64,36 @@
 <script type="module">
 import { renderNav } from "./nav.js";
 import { listSessions, removeSession } from "./store.js";
-import { initPage, t } from "./i18n.js";
+import { initPage, t, locale } from "./i18n.js";
 
 initPage();
 renderNav("instellingen");
 const $ = (id) => document.getElementById(id);
+const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// Overzicht van alle startgewichten: per oefening het gewicht en de bron (Strava of zelf ingevuld).
+// Zelf ingevuld gaat voor Strava. Dumbbells zijn per hand, zoals in de trainingen.
+async function renderWeights() {
+  let exercises = [], seed = {}, own = {};
+  try { exercises = (await (await fetch(new URL("./data/library.json", import.meta.url))).json()).exercises; } catch (e) {}
+  try { seed = (await (await fetch(new URL("./data/history.json", import.meta.url))).json()).gewichten || {}; } catch (e) {}
+  try { own = JSON.parse(localStorage.getItem("fw-hist")) || {}; } catch (e) {}
+  const byType = {};
+  for (const ex of exercises) if (ex.subtype && !byType[ex.subtype]) byType[ex.subtype] = ex;
+  const keys = [...new Set([...Object.keys(seed), ...Object.keys(own)])];
+  if (!keys.length) { $("weights").innerHTML = `<li class="note">${t("set.noWeights")}</li>`; return; }
+  const nf = new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 });
+  const name = (k) => (byType[k] ? byType[k].name : k);
+  $("weights").innerHTML = keys
+    .sort((a, b) => name(a).localeCompare(name(b), locale()))
+    .map((k) => {
+      const isOwn = k in own;
+      const v = isOwn ? own[k] : seed[k];
+      const dumbbell = byType[k]?.dumbbell;
+      const val = v ? `${nf.format(v)} kg${dumbbell ? " " + t("unit.perDumbbell") : ""}` : "–";
+      return `<li><span class="nm">${esc(name(k))}</span><span class="status">${val} · ${t(isOwn ? "set.src.own" : "set.src.strava")}</span></li>`;
+    }).join("");
+}
 
 // Bevestiging op de pagina zelf, niet met een systeemvenster.
 function askInline(boxId, text, okLabel, onOk) {
@@ -91,6 +118,7 @@ function bind() {
     askInline("histbox", t("set.clearWeightsAsk"), t("set.yesClear"), () => {
       try { localStorage.removeItem("fw-hist"); } catch (e) {}
       $("msg").textContent = t("set.weightsCleared");
+      renderWeights();
     });
   });
   $("wisall").addEventListener("click", () => {
@@ -104,6 +132,7 @@ function bind() {
 }
 
 bind();
+renderWeights();
 </script>
 </body>
 </html>
