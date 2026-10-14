@@ -62,17 +62,7 @@
     <h2 data-i18n="bk.title">Export and import</h2>
     <p class="note" data-i18n="bk.text">Export saves all trainings on this device to one JSON file. Import adds trainings from such a file. Trainings that already exist here are left alone.</p>
     <div class="row">
-      <button class="btn" id="bkexport" type="button" data-i18n="bk.export">Export</button>
-    </div>
-    <textarea id="bkbox" class="bkarea" rows="6" readonly spellcheck="false" hidden></textarea>
-    <div class="row" id="bkoutbtns" hidden>
-      <button class="btn" id="bkcopy" type="button" data-i18n="bk.copy">Copy</button>
-      <button class="btn" id="bkdl" type="button" data-i18n="bk.download">Download as file</button>
-    </div>
-    <p class="note" data-i18n="bk.pasteLabel">Paste an export here to import it:</p>
-    <textarea id="bkpaste" class="bkarea" rows="4" spellcheck="false" placeholder="{ ... }"></textarea>
-    <div class="row">
-      <button class="btn" id="bkimport" type="button" data-i18n="bk.importBtn">Import</button>
+      <button class="btn" id="bkexport" type="button" data-i18n="bk.export">Export to JSON file</button>
       <label class="btn" for="bkfile" data-i18n="bk.import">Import from file</label>
       <input id="bkfile" type="file" accept=".json,application/json" hidden>
     </div>
@@ -111,7 +101,7 @@ import { renderNav } from "./nav.js";
 import { listSessions, listTrash, trashSession, restoreTrash, purgeTrash, emptyTrash } from "./store.js";
 import { getToken, setToken, pendingRecords, syncToGithub } from "./github.js";
 import { initPage, t, locale } from "./i18n.js";
-import { downloadExport, exportLocal, parseImport, importItems } from "./backup.js";
+import { downloadExport, parseImport, importItems } from "./backup.js";
 
 initPage();
 renderNav("instellingen");
@@ -256,27 +246,11 @@ $("ghsync").addEventListener("click", async () => {
 });
 
 // Export en import: een JSON met trainingen, zodat je ze tussen apparaten of tussen app en artefact kunt zetten.
-// Downloads werken niet overal (bv. niet in een artefact), daarom staat de export ook als tekst in een vak om te kopiëren.
 $("bkexport").addEventListener("click", () => {
   if (!listSessions().length) { $("bkmsg").textContent = t("bk.noneExport"); return; }
-  const text = JSON.stringify(exportLocal(), null, 2) + "\n";
-  $("bkbox").value = text;
-  $("bkbox").hidden = false;
-  $("bkoutbtns").hidden = false;
-  $("bkmsg").textContent = t("bk.exported", { n: listSessions().length });
+  const n = downloadExport();
+  $("bkmsg").textContent = t("bk.exported", { n });
 });
-$("bkcopy").addEventListener("click", async () => {
-  const text = $("bkbox").value;
-  try {
-    await navigator.clipboard.writeText(text);
-    $("bkmsg").textContent = t("bk.copied");
-  } catch (e) {
-    $("bkbox").focus();
-    $("bkbox").select();
-    $("bkmsg").textContent = document.execCommand("copy") ? t("bk.copied") : t("bk.copyHand");
-  }
-});
-$("bkdl").addEventListener("click", () => downloadExport());
 
 function bkImport(text) {
   try {
@@ -289,7 +263,6 @@ function bkImport(text) {
     $("bkmsg").textContent = err.message === "opslag" ? t("bk.saveErr") : t("bk.bad");
   }
 }
-$("bkimport").addEventListener("click", () => bkImport($("bkpaste").value));
 $("bkfile").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   e.target.value = "";
