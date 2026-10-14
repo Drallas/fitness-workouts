@@ -41,7 +41,7 @@
 
 <div class="wrap">
   <section class="hero">
-    <h1 data-i18n="home.welcome">Welcome back</h1>
+    <h1 id="hwelcome" data-i18n="home.welcome">Welcome back</h1>
     <p class="meta" data-i18n="home.lead">Ready for the next session? Pick what you want to train and go.</p>
     <div class="row">
       <button class="btn primary" id="startnew" type="button" data-i18n="home.start">Start a workout</button>
@@ -114,7 +114,7 @@
 <script type="module">
 import { generate } from "./generate.js";
 import { renderNav } from "./nav.js";
-import { allRecords } from "./stats.js";
+import { allRecords, loadProfile } from "./stats.js";
 import { initPage, t, locale } from "./i18n.js";
 
 initPage();
@@ -206,6 +206,9 @@ $("again").addEventListener("click", () => {
 });
 
 load().catch(() => { $("err").textContent = t("index.loadErr"); });
+// Welkom met de naam uit het profiel, als die is ingevuld.
+const profileName = (loadProfile().name || "").trim();
+if (profileName) $("hwelcome").textContent = t("home.welcomeName", { name: profileName });
 loadHome().catch(() => {});
 </script>
 </body>
