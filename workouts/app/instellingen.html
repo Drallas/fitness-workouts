@@ -57,6 +57,19 @@
     <p class="note" id="ghstatus" role="status"></p>
   </section>
 
+  <section class="card" id="bkcard">
+    <h2 data-i18n="bk.title">Export and import</h2>
+    <p class="note" data-i18n="bk.text">Export saves all trainings on this device to one JSON file. Import adds trainings from such a file. Trainings that already exist here are left alone.</p>
+    <div class="row">
+      <button class="btn" id="bkexport" type="button" data-i18n="bk.export">Export to file</button>
+    </div>
+    <div class="row">
+      <label class="btn" for="bkfile" data-i18n="bk.import">Import from file</label>
+      <input id="bkfile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p class="note" id="bkmsg" role="status"></p>
+  </section>
+
   <section class="card">
     <h2 data-i18n="set.weights">Start weights</h2>
     <p class="note" data-i18n="set.weightsText">The weights the app uses as start weight for a new workout, overwritten by what you entered yourself. Clearing resets them to the Strava values. Your history itself stays on the History page.</p>
@@ -89,6 +102,7 @@ import { renderNav } from "./nav.js";
 import { listSessions, listTrash, trashSession, restoreTrash, purgeTrash, emptyTrash } from "./store.js";
 import { getToken, setToken, pendingRecords, syncToGithub } from "./github.js";
 import { initPage, t, locale } from "./i18n.js";
+import { downloadExport, parseImport, importItems } from "./backup.js";
 
 initPage();
 renderNav("instellingen");
@@ -229,6 +243,27 @@ $("ghsync").addEventListener("click", async () => {
     syncFail(err);
   } finally {
     $("ghsync").disabled = false;
+  }
+});
+
+// Export en import: een JSON met trainingen, zodat je ze tussen apparaten of tussen app en artefact kunt zetten.
+$("bkexport").addEventListener("click", () => {
+  if (!listSessions().length) { $("bkmsg").textContent = t("bk.noneExport"); return; }
+  const n = downloadExport();
+  $("bkmsg").textContent = t("bk.exported", { n });
+});
+$("bkfile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try {
+    const items = parseImport(await file.text());
+    if (!items.length) { $("bkmsg").textContent = t("bk.none"); return; }
+    const r = importItems(items);
+    $("bkmsg").textContent = t("bk.done", r);
+    renderTrash();
+  } catch (err) {
+    $("bkmsg").textContent = err.message === "opslag" ? t("bk.saveErr") : t("bk.bad");
   }
 });
 
