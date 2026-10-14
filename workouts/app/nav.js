@@ -6,6 +6,9 @@ import { t, getLang, setLang, LANGS } from "./i18n.js";
 // Subtiel merkteken: een halter in één lijn, in de accentkleur.
 export const LOGO = `<svg class="mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18"/><path d="M6.5 8.5v7M17.5 8.5v7"/><path d="M3.5 10v4M20.5 10v4" stroke-width="1.6"/></g></svg>`;
 
+// Versie van de app. Ophogen bij elke uitgave; 0.x is de testfase.
+export const APP_VERSION = "0.1";
+
 const ITEMS = [
   { id: "start", href: "index.html", key: "nav.start" },
   { id: "trainingen", href: "trainingen.html", key: "nav.trainings" },
@@ -40,7 +43,7 @@ export function renderNav(active) {
     foot.className = "foot";
     document.body.appendChild(foot);
   }
-  foot.innerHTML = `${t("foot.copy", { year: new Date().getFullYear() })} · <a href="https://github.com/Drallas/fitness-workouts" target="_blank" rel="noopener">${t("foot.code")}</a>`;
+  foot.innerHTML = `${t("foot.copy", { year: new Date().getFullYear() })} · v${APP_VERSION} · <a href="https://github.com/Drallas/fitness-workouts" target="_blank" rel="noopener">${t("foot.code")}</a>`;
 
   // Andere taal: de pagina laadt opnieuw, zodat alle teksten in de nieuwe taal komen.
   document.getElementById("langsel").addEventListener("change", (e) => {
