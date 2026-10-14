@@ -20,18 +20,27 @@ export async function allRecords() {
       state: loadState(s.id) || {}, source: "lokaal", link: `train.html?id=${encodeURIComponent(s.id)}`,
     });
   }
-  try {
-    const index = await (await fetch(new URL("../done/index.json", import.meta.url))).json();
+  // Afgeronde trainingen: in de repo staat de map workouts/done/ naast workouts/app/ (../done/).
+  // In een artefact staat die map naast de pagina (done/). Het eerste pad dat werkt, wint.
+  const bases = ["../done/", "done/"];
+  let base = null, index = null;
+  for (const b of bases) {
+    try {
+      const r = await fetch(new URL(b + "index.json", import.meta.url));
+      if (r.ok) { index = await r.json(); base = b; break; }
+    } catch (e) {}
+  }
+  if (index) {
     for (const item of index) {
       try {
-        const rec = await (await fetch(new URL("../done/" + item.file, import.meta.url))).json();
+        const rec = await (await fetch(new URL(base + item.file, import.meta.url))).json();
         out.push({
           id: rec.plan.id, title: rec.plan.title, date: rec.plan.date, status: "klaar",
-          plan: rec.plan, state: rec.state || {}, source: "GitHub", link: `train.html?file=../done/${encodeURIComponent(item.file)}`,
+          plan: rec.plan, state: rec.state || {}, source: "GitHub", link: `train.html?file=${base}${encodeURIComponent(item.file)}`,
         });
       } catch (e) {}
     }
-  } catch (e) {}
+  }
   return out;
 }
 
