@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="help.title">Help</title>
+<meta name="description" content="How the training app works and where your data is kept.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="ui.css">
+<style>
+.about p { font-size: 15px; line-height: 1.5; }
+.about h3 { margin-top: 4px; }
+.about ol { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+</style>
+</head>
+<body>
+<div id="nav"></div>
+
+<div class="wrap">
+  <header class="stack">
+    <div class="eyebrow" data-i18n="eyebrow">Fitness</div>
+    <h1 data-i18n="help.h1">Help</h1>
+  </header>
+
+  <section class="card about">
+    <h3 data-i18n="help.whatTitle">What the app does</h3>
+    <p data-i18n="help.what1">You choose what you want to train, how much time you have and how much energy you have. The app puts together a strength workout with sets, reps and weights. The weight is filled in with what you did before.</p>
+    <p data-i18n="help.what2">During the training you tick off each set. There is a rest timer and a pause button. Everything you fill in is saved as soon as you start the training, so you can continue later.</p>
+    <p data-i18n="help.what3">When you're done, you finish the training. Then you can download a Garmin workout and an activity as FIT files, and make share images for Garmin, Strava and Instagram.</p>
+  </section>
+
+  <section class="card about">
+    <h3 data-i18n="help.howTitle">Step by step</h3>
+    <ol>
+      <li data-i18n="help.how1">1. Start: choose one or more muscle groups, the time, the energy level, and optionally your sleep score and Body Battery. Then tap Make workout.</li>
+      <li data-i18n="help.how2">2. Open the training. Tap Start training when you begin. From then on it is saved and stays in Trainings until you delete it.</li>
+      <li data-i18n="help.how3">3. Tick off each set. The rest timer starts automatically. Use Pause if you want to stop for a moment; a tick ends the pause.</li>
+      <li data-i18n="help.how4">4. Finish: download the Garmin workout (for scheduling) or the activity (for what you actually did) as FIT file, and upload it to Garmin Connect. Then sync to Strava.</li>
+      <li data-i18n="help.how5">5. Optional: finish the training with Finish training and send the file to Claude. Then it goes on GitHub and appears under Finished on GitHub.</li>
+    </ol>
+    <p class="note" data-i18n="help.howTip">Exercise names open a guide. Pictures come from Wikimedia Commons; if a picture is missing, you get a YouTube search link.</p>
+  </section>
+
+  <section class="card about">
+    <h3 data-i18n="help.pagesTitle">The pages</h3>
+    <p data-i18n="help.pages">Start makes a new workout. Trainings shows active and finished trainings, and lets you open, redo or delete them. History shows your average weights and personal records per exercise. Settings holds the connections, start weights and clearing. Help is this page. The round icon at the right is your profile: name and photo.</p>
+  </section>
+
+  <section class="card about">
+    <h3 data-i18n="help.dataTitle">Your data</h3>
+    <p data-i18n="help.data1">Trainings, progress and your profile are stored in the browser of this device. Nothing is sent to a server. Finished trainings that are in the repo are public on GitHub.</p>
+    <p data-i18n="help.data2">The history on the History page comes from all trainings you have done, on this device and in the repo.</p>
+  </section>
+
+  <section class="card about">
+    <h3 data-i18n="help.notYetTitle">What doesn't work yet</h3>
+    <p data-i18n="help.notYet">Sending trainings automatically to Strava or Garmin isn't possible yet; that needs a small server. The readiness and Body Battery you fill in yourself. Exercise pictures come from Wikimedia Commons and are otherwise replaced by a YouTube search link.</p>
+  </section>
+
+  <section class="card about">
+    <h3 data-i18n="help.versionTitle">Version</h3>
+    <p class="note" data-i18n="help.version">A personal app, built with Claude. The code and setup are in the GitHub repo fitness-workouts.</p>
+  </section>
+</div>
+
+<script type="module">
+import { renderNav } from "./nav.js";
+import { initPage } from "./i18n.js";
+initPage();
+renderNav("help");
+</script>
+</body>
+</html>

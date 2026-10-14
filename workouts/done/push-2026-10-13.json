@@ -1,0 +1,505 @@
+{
+  "versie": 1,
+  "plan": {
+    "id": "push-2026-10-13",
+    "title": "Push: borst, schouders, triceps",
+    "date": "2026-10-13",
+    "sport": "strengthTraining",
+    "blocks": [
+      {
+        "tag": "",
+        "title": "Opwarmen",
+        "exercises": [
+          {
+            "id": "w1",
+            "name": "Achterste schouder fly",
+            "category": "flye",
+            "subtype": "faceDownInclineReverseFlye",
+            "rest": 0,
+            "sets": [
+              {
+                "label": "1 set",
+                "weight": 4,
+                "reps": 15
+              }
+            ],
+            "dumbbell": true
+          },
+          {
+            "id": "w2",
+            "name": "Push-ups",
+            "category": "pushUp",
+            "subtype": null,
+            "rest": 0,
+            "sets": [
+              {
+                "label": "1 set",
+                "weight": 0,
+                "reps": 10
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "A",
+        "title": "Bench press",
+        "exercises": [
+          {
+            "id": "a1",
+            "name": "Bench press (stang)",
+            "category": "benchPress",
+            "subtype": "barbellBenchPress",
+            "rest": 90,
+            "sets": [
+              {
+                "label": "Opwarm",
+                "weight": 30,
+                "reps": 10
+              },
+              {
+                "label": "Opwarm",
+                "weight": 40,
+                "reps": 6
+              },
+              {
+                "label": "Werkset 1",
+                "weight": 47.5,
+                "reps": 8
+              },
+              {
+                "label": "Werkset 2",
+                "weight": 47.5,
+                "reps": 8
+              },
+              {
+                "label": "Werkset 3",
+                "weight": 47.5,
+                "reps": 8
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "B",
+        "title": "Superset borst en rug",
+        "exercises": [
+          {
+            "id": "b1",
+            "name": "Schuine dumbbell press",
+            "category": "benchPress",
+            "subtype": "inclineDumbbellBenchPress",
+            "rest": 0,
+            "sets": [
+              {
+                "label": "Ronde 1",
+                "weight": 30,
+                "reps": 8
+              },
+              {
+                "label": "Ronde 2",
+                "weight": 30,
+                "reps": 8
+              },
+              {
+                "label": "Ronde 3",
+                "weight": 30,
+                "reps": 8
+              }
+            ],
+            "dumbbell": true
+          },
+          {
+            "id": "b2",
+            "name": "Pull-up, neutrale greep",
+            "category": "pullUp",
+            "subtype": null,
+            "rest": 90,
+            "sets": [
+              {
+                "label": "Ronde 1",
+                "weight": 0,
+                "reps": 5
+              },
+              {
+                "label": "Ronde 2",
+                "weight": 0,
+                "reps": 5
+              },
+              {
+                "label": "Ronde 3",
+                "weight": 0,
+                "reps": 5
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "C",
+        "title": "Dips",
+        "exercises": [
+          {
+            "id": "c1",
+            "name": "Parallelle dips",
+            "category": "tricepsExtension",
+            "subtype": "bodyWeightDip",
+            "rest": 90,
+            "sets": [
+              {
+                "label": "Set 1",
+                "weight": 0,
+                "reps": 8
+              },
+              {
+                "label": "Set 2",
+                "weight": 0,
+                "reps": 8
+              },
+              {
+                "label": "Set 3 rest-pause",
+                "weight": 0,
+                "reps": 8
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "D",
+        "title": "Schouders",
+        "exercises": [
+          {
+            "id": "d1",
+            "name": "Staande schouderpers",
+            "category": "shoulderPress",
+            "subtype": "dumbbellShoulderPress",
+            "rest": 75,
+            "sets": [
+              {
+                "label": "Set 1",
+                "weight": 20,
+                "reps": 10
+              },
+              {
+                "label": "Set 2",
+                "weight": 20,
+                "reps": 10
+              }
+            ],
+            "dumbbell": true
+          },
+          {
+            "id": "d2",
+            "name": "Zijwaartse zijheffing",
+            "category": "lateralRaise",
+            "subtype": "dumbbellLateralRaise",
+            "rest": 45,
+            "sets": [
+              {
+                "label": "Set 1",
+                "weight": 6,
+                "reps": 15
+              },
+              {
+                "label": "Set 2",
+                "weight": 6,
+                "reps": 15
+              },
+              {
+                "label": "Set 3",
+                "weight": 6,
+                "reps": 15
+              }
+            ],
+            "dumbbell": true
+          }
+        ]
+      },
+      {
+        "tag": "E",
+        "title": "Triceps giant set",
+        "exercises": [
+          {
+            "id": "e1",
+            "name": "Kabel overhead extension",
+            "category": "tricepsExtension",
+            "subtype": "cableOverheadTricepsExtension",
+            "rest": 0,
+            "sets": [
+              {
+                "label": "Ronde 1",
+                "weight": 11,
+                "reps": 12
+              },
+              {
+                "label": "Ronde 2",
+                "weight": 11,
+                "reps": 12
+              },
+              {
+                "label": "Ronde 3",
+                "weight": 11,
+                "reps": 12
+              }
+            ]
+          },
+          {
+            "id": "e2",
+            "name": "Triceps pressdown",
+            "category": "tricepsExtension",
+            "subtype": "tricepsPressdown",
+            "rest": 0,
+            "sets": [
+              {
+                "label": "Ronde 1",
+                "weight": 15,
+                "reps": 12
+              },
+              {
+                "label": "Ronde 2",
+                "weight": 15,
+                "reps": 12
+              },
+              {
+                "label": "Ronde 3",
+                "weight": 15,
+                "reps": 12
+              }
+            ]
+          },
+          {
+            "id": "e3",
+            "name": "Smalle push-ups",
+            "category": "pushUp",
+            "subtype": "closeHandsPushUp",
+            "rest": 60,
+            "sets": [
+              {
+                "label": "Ronde 1",
+                "weight": 0,
+                "reps": null
+              },
+              {
+                "label": "Ronde 2",
+                "weight": 0,
+                "reps": null
+              },
+              {
+                "label": "Ronde 3",
+                "weight": 0,
+                "reps": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "F",
+        "title": "Core",
+        "exercises": [
+          {
+            "id": "f1",
+            "name": "Hanging knee raise",
+            "category": "legRaise",
+            "subtype": "hangingKneeRaise",
+            "rest": 45,
+            "sets": [
+              {
+                "label": "Set 1",
+                "weight": 0,
+                "reps": 15
+              },
+              {
+                "label": "Set 2",
+                "weight": 0,
+                "reps": 15
+              },
+              {
+                "label": "Set 3",
+                "weight": 0,
+                "reps": 15
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "state": {
+    "startMs": 1791887343000,
+    "vals": {
+      "w1-0": {
+        "w": "4",
+        "r": "15"
+      },
+      "w2-0": {
+        "w": "0",
+        "r": "10"
+      },
+      "a1-0": {
+        "w": "30",
+        "r": "10"
+      },
+      "a1-1": {
+        "w": "40",
+        "r": "6"
+      },
+      "a1-2": {
+        "w": "47.5",
+        "r": "8"
+      },
+      "a1-3": {
+        "w": "47.5",
+        "r": "8"
+      },
+      "a1-4": {
+        "w": "47.5",
+        "r": "8"
+      },
+      "b1-0": {
+        "w": "30",
+        "r": "8"
+      },
+      "b1-1": {
+        "w": "30",
+        "r": "8"
+      },
+      "b1-2": {
+        "w": "30",
+        "r": "8"
+      },
+      "b2-0": {
+        "w": "0",
+        "r": "5"
+      },
+      "b2-1": {
+        "w": "0",
+        "r": "5"
+      },
+      "b2-2": {
+        "w": "0",
+        "r": "5"
+      },
+      "c1-0": {
+        "w": "0",
+        "r": "8"
+      },
+      "c1-1": {
+        "w": "0",
+        "r": "8"
+      },
+      "c1-2": {
+        "w": "0",
+        "r": "8"
+      },
+      "d1-0": {
+        "w": "20",
+        "r": "10"
+      },
+      "d1-1": {
+        "w": "20",
+        "r": "10"
+      },
+      "d2-0": {
+        "w": "6",
+        "r": "10"
+      },
+      "d2-1": {
+        "w": "4",
+        "r": "12"
+      },
+      "d2-2": {
+        "w": "4",
+        "r": "12"
+      },
+      "e1-0": {
+        "w": "11",
+        "r": "11"
+      },
+      "e1-1": {
+        "w": "11",
+        "r": "11"
+      },
+      "e1-2": {
+        "w": "11",
+        "r": "11"
+      },
+      "e2-0": {
+        "w": "16",
+        "r": "12"
+      },
+      "e2-1": {
+        "w": "14",
+        "r": "12"
+      },
+      "e2-2": {
+        "w": "15",
+        "r": "12"
+      },
+      "e3-0": {
+        "w": "0",
+        "r": "10"
+      },
+      "e3-1": {
+        "w": "0",
+        "r": "8"
+      },
+      "e3-2": {
+        "w": "0",
+        "r": "10"
+      },
+      "f1-0": {
+        "w": "0",
+        "r": "15"
+      },
+      "f1-1": {
+        "w": "0",
+        "r": "15"
+      },
+      "f1-2": {
+        "w": "0",
+        "r": "15"
+      }
+    },
+    "done": {
+      "w1-0": 1791887450000,
+      "w2-0": 1791887557000,
+      "a1-0": 1791887664000,
+      "a1-1": 1791887771000,
+      "a1-2": 1791887878000,
+      "a1-3": 1791887985000,
+      "a1-4": 1791888092000,
+      "b1-0": 1791888199000,
+      "b1-1": 1791888306000,
+      "b1-2": 1791888413000,
+      "b2-0": 1791888520000,
+      "b2-1": 1791888627000,
+      "b2-2": 1791888734000,
+      "c1-0": 1791888841000,
+      "c1-1": 1791888948000,
+      "c1-2": 1791889055000,
+      "d1-0": 1791889162000,
+      "d1-1": 1791889269000,
+      "d2-0": 1791889376000,
+      "d2-1": 1791889483000,
+      "d2-2": 1791889590000,
+      "e1-0": 1791889697000,
+      "e1-1": 1791889804000,
+      "e1-2": 1791889911000,
+      "e2-0": 1791890018000,
+      "e2-1": 1791890125000,
+      "e2-2": 1791890232000,
+      "e3-0": 1791890339000,
+      "e3-1": 1791890446000,
+      "e3-2": 1791890553000,
+      "f1-0": 1791890660000,
+      "f1-1": 1791890767000,
+      "f1-2": 1791890874000
+    },
+    "pauses": []
+  },
+  "afgerond": "2026-10-13T11:27:54.000Z",
+  "bron": "Strava-activiteit 20565444198 (krachttraining 13-10). Gewichten en herhalingen uit Strava; tijden per set benaderd."
+}

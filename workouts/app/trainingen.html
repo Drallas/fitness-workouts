@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="tr.title">Trainings</title>
+<meta name="description" content="Trainings in progress or finished, on this device and on GitHub.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="ui.css">
+<style>
+.grp { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; flex-direction: column; gap: 6px; }
+.item .t { font-weight: 600; font-size: 16px; line-height: 1.3; }
+.item .m { font-family: var(--font-num); font-size: 13px; color: var(--muted); }
+.item .m.ok { color: var(--accent); }
+.item .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.empty { font-size: 15px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="nav"></div>
+
+<div class="wrap">
+  <header class="stack">
+    <div class="eyebrow" data-i18n="eyebrow">Fitness</div>
+    <h1 data-i18n="tr.title">Trainings</h1>
+    <p class="meta" data-i18n="tr.meta">Active, finished on this device and finished on GitHub. You can only delete trainings on this device.</p>
+  </header>
+
+  <section class="card" id="bezig">
+    <div class="section-title"><h2 data-i18n="tr.active">Active</h2><span class="badge" id="nBezig"></span></div>
+    <div class="grp" id="lBezig"></div>
+  </section>
+
+  <section class="card" id="lokaal">
+    <div class="section-title"><h2 data-i18n="tr.localDone">Finished on this device</h2><span class="badge" id="nLokaal"></span></div>
+    <div class="grp" id="lLokaal"></div>
+  </section>
+
+  <section class="card" id="github">
+    <div class="section-title"><h2 data-i18n="tr.githubDone">Finished on GitHub</h2><span class="badge" id="nGithub"></span></div>
+    <p class="note" data-i18n="tr.githubNote">These are in the repo (workouts/done/). You can view and redo them here, but not delete them.</p>
+    <div class="grp" id="lGithub"></div>
+  </section>
+</div>
+
+<script type="module">
+import { renderNav } from "./nav.js";
+import { removeSession, loadPlan, savePlan } from "./store.js";
+import { allRecords } from "./stats.js";
+import { initPage, t, locale } from "./i18n.js";
+
+initPage();
+renderNav("trainingen");
+const $ = (id) => document.getElementById(id);
+const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const dateLong = (d) => new Date(d + "T12:00:00").toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
+let pendingDel = null;
+
+function progress(rec) {
+  const total = rec.plan.blocks.reduce((n, b) => n + b.exercises.reduce((m, e) => m + e.sets.length, 0), 0);
+  const done = Object.keys(rec.state.done || {}).length;
+  return t("tr.progress", { done, total });
+}
+
+function row(rec) {
+  const start = rec.state.startMs ? new Date(rec.state.startMs).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "";
+  const klaar = rec.status === "klaar";
+  const meta = `${dateLong(rec.date)}${start ? " · " + start : ""} · ${progress(rec)}`;
+  const local = rec.source === "lokaal";
+  let acts = `<a class="btn small primary" href="${rec.link}">${t("tr.open")}</a>`;
+  if (klaar) acts += `<button class="btn small" type="button" data-again="${esc(rec.id)}" data-src="${local ? "lokaal" : "github"}" data-link="${esc(rec.link)}">${t("tr.again")}</button>`;
+  if (local) {
+    if (pendingDel === rec.id) {
+      return `<div class="item"><span class="warn-text">${esc(t("tr.deleteAsk", { title: rec.title }))}</span>
+        <div class="acts"><button class="btn small sure" type="button" data-delok="${esc(rec.id)}">${t("tr.deleteYes")}</button><button class="btn small" type="button" data-delno="1">${t("tr.cancel")}</button></div></div>`;
+    }
+    acts += `<button class="btn small danger" type="button" data-del="${esc(rec.id)}">${t("tr.delete")}</button>`;
+  }
+  const status = klaar ? t("tr.statusDone") : t("tr.statusActive");
+  return `<div class="item"><span class="t">${esc(rec.title)}</span><span class="m ${klaar ? "ok" : ""}">${meta} · ${status}</span><div class="acts">${acts}</div></div>`;
+}
+
+let recs = [];
+function render() {
+  const bezig = recs.filter((r) => r.source === "lokaal" && r.status !== "klaar");
+  const lokaal = recs.filter((r) => r.source === "lokaal" && r.status === "klaar");
+  const github = recs.filter((r) => r.source === "GitHub");
+  $("nBezig").textContent = bezig.length;
+  $("nLokaal").textContent = lokaal.length;
+  $("nGithub").textContent = github.length;
+  $("lBezig").innerHTML = bezig.map(row).join("") || `<p class="empty">${t("tr.noActive")}</p>`;
+  $("lLokaal").innerHTML = lokaal.map(row).join("") || `<p class="empty">${t("tr.noLocal")}</p>`;
+  $("lGithub").innerHTML = github.map(row).join("") || `<p class="empty">${t("tr.noGithub")}</p>`;
+}
+
+async function load() {
+  recs = (await allRecords()).sort((a, b) => (a.date < b.date ? 1 : -1));
+  render();
+}
+
+document.querySelector(".wrap").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-again],[data-del],[data-delok],[data-delno]");
+  if (!b) return;
+  if (b.dataset.again) {
+    // Kopie van het plan met nieuw id en lege voortgang; de afgeronde training blijft staan.
+    const id = b.dataset.again;
+    const rec = recs.find((r) => r.id === id && (b.dataset.src === "lokaal" ? r.source === "lokaal" : r.source === "GitHub"));
+    if (!rec) return;
+    const now = new Date();
+    const newId = `${rec.plan.id}-r${now.getTime().toString(36)}`;
+    const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    savePlan({ ...rec.plan, id: newId, date: ymd });
+    location.href = `train.html?id=${encodeURIComponent(newId)}`;
+    return;
+  }
+  if (b.dataset.del) { pendingDel = b.dataset.del; render(); return; }
+  if (b.dataset.delno) { pendingDel = null; render(); return; }
+  if (b.dataset.delok) {
+    removeSession(b.dataset.delok);
+    pendingDel = null;
+    recs = recs.filter((r) => r.id !== b.dataset.delok);
+    render();
+  }
+});
+
+load().catch(() => { $("lBezig").innerHTML = `<p class="empty">${t("tr.loadErr")}</p>`; });
+</script>
+</body>
+</html>

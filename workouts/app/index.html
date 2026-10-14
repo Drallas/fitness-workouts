@@ -1,154 +1,102 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nieuwe workout</title>
-<meta name="description" content="Stel een krachttraining samen op basis van spiergroep, tijd en energie.">
+<title>Fitness</title>
+<meta name="description" content="Put together a strength workout based on muscle group, time and energy.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="ui.css">
 <style>
-:root {
-  --bg: #edf0f3; --surface: #ffffff; --ink: #16212b; --muted: #5b6b79; --line: #d3dae1;
-  --accent: #0e6f68; --accent-ink: #ffffff; --warm: #b4540a; --soft: #e3ecee;
-  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --font-body: "IBM Plex Sans", system-ui, sans-serif;
-  --font-num: "IBM Plex Mono", ui-monospace, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6; --line: #2a3844;
-    --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6; --line: #2a3844;
-  --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33; color-scheme: dark;
-}
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-body {
-  margin: 0; background: var(--bg); color: var(--ink);
-  font-family: var(--font-body); font-size: 18px; line-height: 1.5;
-  padding: 0 16px 60px; overflow-wrap: normal; word-break: normal;
-}
-/* Menubalk bovenin, op elke pagina dezelfde */
-.top {
-  position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line);
-  margin: 0 -16px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
-  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
-}
-.top .brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-right: auto; color: var(--ink); text-decoration: none; }
-.top a.nv { font-weight: 600; color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 8px; }
-.top a.nv[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
-.top a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.wrap { width: 100%; max-width: 680px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; padding-top: 16px; }
-h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
-h1 { font-size: 46px; line-height: 1.05; }
-h2 { font-size: 30px; line-height: 1.1; }
-.eyebrow { font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
-.meta, .note { margin: 0; color: var(--muted); font-size: 16px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-legend { font-weight: 600; font-size: 19px; padding: 0; margin-bottom: 10px; }
-.chips { display: flex; flex-wrap: wrap; gap: 10px; }
-.chip { position: relative; }
-.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.chip span {
-  display: inline-flex; align-items: center; min-height: 48px; padding: 10px 16px;
-  border: 1.5px solid var(--line); border-radius: 8px; background: var(--bg); font-weight: 600; cursor: pointer;
-}
-.chip input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
-.field { display: flex; flex-direction: column; gap: 8px; }
-.field label { font-weight: 600; font-size: 18px; }
-input[type="number"] {
-  width: 100%; height: 50px; padding: 0 12px; font: inherit; font-family: var(--font-num); font-size: 20px;
-  color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
-}
-input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.btn {
-  font: inherit; font-weight: 600; font-size: 19px; min-height: 52px; color: var(--ink);
-  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 20px; cursor: pointer;
-  text-decoration: none; display: inline-flex; align-items: center; justify-content: center; text-align: center;
-}
-.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn.danger { background: var(--warm); color: #fff; border-color: var(--warm); }
-.err { margin: 0; color: var(--warm); font-weight: 600; min-height: 1em; }
-.result h2 { font-size: 36px; }
-.est { font-family: var(--font-num); font-size: 18px; color: var(--accent); margin: 0; }
-.plan { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
-.plan .blk { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--muted); margin-top: 6px; }
-.plan li { display: flex; flex-direction: column; gap: 2px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+.hero { display: flex; flex-direction: column; gap: 10px; padding: 12px 0 4px; }
+.hero h1 { font-size: 40px; }
+.hero .row { margin-top: 6px; }
+.stats { flex-direction: row; justify-content: space-around; gap: 8px; text-align: center; }
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat .num { font-family: var(--font-num); font-size: 22px; color: var(--ink); }
+.stat .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.recent { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.recent li { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.recent li:first-child { padding-top: 0; }
+.recent li:last-child { border-bottom: 0; padding-bottom: 0; }
+.recent a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 15px; }
+.recent .m { display: block; font-family: var(--font-num); font-size: 13px; color: var(--muted); margin-top: 2px; }
+.result h2 { font-size: 28px; }
+.est { font-family: var(--font-num); font-size: 15px; color: var(--accent); }
+.plan { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.plan .blk { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--muted); margin-top: 4px; }
+.plan li { display: flex; flex-direction: column; gap: 1px; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
 .plan li:last-child { border-bottom: 0; }
-.plan .nm { font-weight: 600; font-size: 19px; line-height: 1.3; }
-.plan .sc { font-family: var(--font-num); font-size: 16px; color: var(--muted); }
-.notes { background: var(--soft); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
-.notes p { margin: 0; font-size: 17px; }
-.actions { display: flex; flex-direction: column; gap: 12px; }
-.slist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-.slist li { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
-.slist li:last-child { border-bottom: 0; padding-bottom: 0; }
-.slist .st { font-family: var(--font-num); font-size: 15px; color: var(--muted); }
-.slist .st.klaar { color: var(--accent); }
-.slist .acts { display: flex; gap: 10px; flex-wrap: wrap; }
-.slist .acts a, .slist .acts button { min-height: 44px; font-size: 17px; padding: 8px 14px; }
-.slist .warn { font-size: 17px; color: var(--ink); background: var(--soft); border-radius: 8px; padding: 12px 14px; }
+.plan .nm { font-weight: 600; font-size: 16px; line-height: 1.3; }
+.plan .sc { font-family: var(--font-num); font-size: 14px; color: var(--muted); }
+.notes { background: var(--soft); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.notes p { font-size: 15px; }
+.err { color: var(--warm); font-weight: 600; font-size: 15px; min-height: 1em; }
 </style>
 </head>
 <body>
-<nav class="top" aria-label="Hoofdmenu">
-  <span class="brand">Trainingen</span>
-  <a class="nv" href="./" aria-current="page">Start</a>
-  <a class="nv" href="instellingen.html">Instellingen</a>
-</nav>
+<div id="nav"></div>
 
 <div class="wrap">
-  <header style="display:flex;flex-direction:column;gap:8px">
-    <div class="eyebrow">Fitness</div>
-    <h1>Nieuwe workout</h1>
-    <p class="meta">Kies wat je wilt trainen, hoeveel tijd je hebt en hoeveel energie. Het gewicht vul je aan met wat je de vorige keer deed.</p>
-  </header>
+  <section class="hero">
+    <h1 data-i18n="home.welcome">Welcome back</h1>
+    <p class="meta" data-i18n="home.lead">Ready for the next session? Pick what you want to train and go.</p>
+    <div class="row">
+      <button class="btn primary" id="startnew" type="button" data-i18n="home.start">Start a workout</button>
+      <a class="btn" href="trainingen.html" data-i18n="home.manage">Manage trainings</a>
+    </div>
+  </section>
 
-  <form class="card" id="form" autocomplete="off">
+  <section class="card stats">
+    <div class="stat"><span class="num" id="sTrain">–</span><span class="lbl" data-i18n="home.statTrainings">trainings</span></div>
+    <div class="stat"><span class="num" id="sSets">–</span><span class="lbl" data-i18n="home.statSets">sets ticked</span></div>
+    <div class="stat"><span class="num" id="sLast">–</span><span class="lbl" data-i18n="home.statLast">last training</span></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><h2 data-i18n="home.recent">Latest trainings</h2><a class="badge" href="trainingen.html" data-i18n="home.allTrainings">All trainings</a></div>
+    <ul class="recent" id="recent"><li class="note" data-i18n="home.none">Nothing yet. Your first training shows up here.</li></ul>
+  </section>
+
+  <form class="card" id="newbox" hidden autocomplete="off">
+    <h2 data-i18n="home.newTitle">New workout</h2>
     <fieldset>
-      <legend>Wat wil je trainen?</legend>
+      <legend data-i18n="index.groups">What do you want to train?</legend>
       <div class="chips" id="groups"></div>
     </fieldset>
 
     <fieldset>
-      <legend>Hoeveel tijd?</legend>
+      <legend data-i18n="index.time">How much time?</legend>
       <div class="chips">
-        <label class="chip"><input type="radio" name="min" value="45"><span>45 min</span></label>
-        <label class="chip"><input type="radio" name="min" value="60" checked><span>60 min</span></label>
-        <label class="chip"><input type="radio" name="min" value="75"><span>75 min</span></label>
-        <label class="chip"><input type="radio" name="min" value="90"><span>90 min</span></label>
+        <label class="chip"><input type="radio" name="min" value="45"><span>45 <span data-i18n="unit.min">min</span></span></label>
+        <label class="chip"><input type="radio" name="min" value="60" checked><span>60 <span data-i18n="unit.min">min</span></span></label>
+        <label class="chip"><input type="radio" name="min" value="75"><span>75 <span data-i18n="unit.min">min</span></span></label>
+        <label class="chip"><input type="radio" name="min" value="90"><span>90 <span data-i18n="unit.min">min</span></span></label>
       </div>
     </fieldset>
 
     <fieldset>
-      <legend>Hoeveel energie?</legend>
+      <legend data-i18n="index.energy">How much energy?</legend>
       <div class="chips">
-        <label class="chip"><input type="radio" name="energy" value="laag"><span>Laag</span></label>
-        <label class="chip"><input type="radio" name="energy" value="midden" checked><span>Midden</span></label>
-        <label class="chip"><input type="radio" name="energy" value="hoog"><span>Hoog</span></label>
+        <label class="chip"><input type="radio" name="energy" value="laag"><span data-i18n="energy.low">Low</span></label>
+        <label class="chip"><input type="radio" name="energy" value="midden" checked><span data-i18n="energy.mid">Medium</span></label>
+        <label class="chip"><input type="radio" name="energy" value="hoog"><span data-i18n="energy.high">High</span></label>
       </div>
     </fieldset>
 
     <div class="field">
-      <label for="ready">Slaapscore (Garmin readiness)</label>
-      <input type="number" id="ready" inputmode="numeric" min="0" max="100" placeholder="bv. 76">
+      <label for="ready" data-i18n="index.ready">Sleep score (Garmin readiness)</label>
+      <input type="number" id="ready" inputmode="numeric" min="0" max="100" placeholder="76">
     </div>
     <div class="field">
-      <label for="body">Bodybatterij</label>
-      <input type="number" id="body" inputmode="numeric" min="0" max="100" placeholder="bv. 80">
+      <label for="body" data-i18n="index.body">Body Battery</label>
+      <input type="number" id="body" inputmode="numeric" min="0" max="100" placeholder="80">
     </div>
 
     <p class="err" id="err" role="alert"></p>
-    <button class="btn primary" id="gen" type="submit">Maak workout</button>
+    <button class="btn primary" id="gen" type="submit" data-i18n="index.generate">Make workout</button>
   </form>
 
   <section class="card result" id="result" hidden>
@@ -156,121 +104,71 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
     <p class="est" id="rest"></p>
     <div class="notes" id="rnotes"></div>
     <ol class="plan" id="rplan"></ol>
-    <div class="actions">
-      <a class="btn primary" id="open" href="train.html">Open de training</a>
-      <button class="btn" id="again" type="button">Opnieuw samenstellen</button>
+    <div class="row">
+      <a class="btn primary" id="open" href="train.html" data-i18n="index.open">Open the training</a>
+      <button class="btn" id="again" type="button" data-i18n="index.again">Compose again</button>
     </div>
-  </section>
-
-  <section class="card" id="sessions">
-    <h2>Trainingen</h2>
-    <p class="note">Gestarte trainingen blijven hier staan tot je ze verwijdert. Open er één om verder te gaan of om de downloads te pakken.</p>
-    <ul class="slist" id="slist"></ul>
   </section>
 </div>
 
 <script type="module">
 import { generate } from "./generate.js";
-import { listSessions, removeSession, loadPlan, loadState, savePlan } from "./store.js";
+import { renderNav } from "./nav.js";
+import { allRecords } from "./stats.js";
+import { initPage, t, locale } from "./i18n.js";
 
+initPage();
+renderNav("start");
 const $ = (id) => document.getElementById(id);
-const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const fmtNum = (n) => String(n).replace(".", ",");
 // Laatste benen-zware sessie: de intervallen van 12-10 om 10:19. Gebruikt voor de 48-uur-regel.
 const LAST_LEGS = "2026-10-12T10:19:00";
 
 let lib = null;
 let hist = {};
-// Welke training wacht op bevestiging van verwijderen (alleen op deze pagina).
-let pendingDel = null;
 
-function renderSessions() {
-  const list = listSessions();
-  const voorbeeld = `
-    <li>
-      <span><strong>Pushtraining 13-10 (voorbeeld)</strong></span>
-      <span class="st">Vaste voorbeeldtraining, wordt niet opgeslagen</span>
-      <span class="acts"><a class="btn primary" href="train.html?w=push">Open</a></span>
-    </li>`;
-  $("slist").innerHTML = voorbeeld + list.map((s) => {
-    if (pendingDel === s.id) {
-      return `
-    <li>
-      <span class="warn">Training "${esc(s.title)}" verwijderen? Het plan en je voortgang op dit apparaat gaan weg. Dit kan niet ongedaan worden gemaakt. Een bestand dat je al hebt gedownload, blijft staan.</span>
-      <span class="acts">
-        <button class="btn danger" type="button" data-delok="${esc(s.id)}">Ja, verwijder</button>
-        <button class="btn" type="button" data-delno="1">Annuleer</button>
-      </span>
-    </li>`;
-    }
-    const plan = loadPlan(s.id);
-    const st = loadState(s.id);
-    const total = plan ? plan.blocks.reduce((n, b) => n + b.exercises.reduce((m, e) => m + e.sets.length, 0), 0) : 0;
-    const done = st ? Object.keys(st.done || {}).length : 0;
-    const started = s.startMs ? new Date(s.startMs).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }) : "";
-    const klaar = s.status === "klaar";
-    return `
-    <li>
-      <span><strong>${esc(s.title)}</strong></span>
-      <span class="st ${klaar ? "klaar" : ""}">${new Date(s.date + "T12:00:00").toLocaleDateString("nl-NL")}${started ? " · gestart " + started : ""} · ${done} / ${total} sets · ${klaar ? "afgerond" : "bezig"}</span>
-      <span class="acts">
-        <a class="btn primary" href="train.html?id=${encodeURIComponent(s.id)}">Open</a>
-        ${klaar ? `<button class="btn" type="button" data-again="${esc(s.id)}">Doe opnieuw</button>` : ""}
-        <button class="btn" type="button" data-del="${esc(s.id)}">Verwijder</button>
-      </span>
-    </li>`;
-  }).join("");
+// Welkomstpagina: de laatste trainingen en een paar rustige cijfers uit alles wat je hebt afgevinkt.
+async function loadHome() {
+  const recs = (await allRecords())
+    .filter((r) => r.state.done && Object.keys(r.state.done).length > 0)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  const sets = recs.reduce((n, r) => n + Object.keys(r.state.done).length, 0);
+  $("sTrain").textContent = recs.length;
+  $("sSets").textContent = sets;
+  $("sLast").textContent = recs.length ? new Date(recs[0].date + "T12:00:00").toLocaleDateString(locale(), { day: "numeric", month: "short" }) : "–";
+  if (recs.length) {
+    $("recent").innerHTML = recs.slice(0, 3).map((r) => {
+      const n = Object.keys(r.state.done).length;
+      const day = new Date(r.date + "T12:00:00").toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
+      return `<li><a href="${esc(r.link)}">${esc(r.title)}</a><span class="m">${esc(day)} · ${n} ${t(n === 1 ? "unit.set" : "unit.sets")}</span></li>`;
+    }).join("");
+  }
 }
-
-$("slist").addEventListener("click", (e) => {
-  const t = e.target.closest("[data-again],[data-del],[data-delok],[data-delno]");
-  if (!t) return;
-  if (t.dataset.again) {
-    // Kopie van het plan met een nieuw id en lege voortgang; de afgeronde training blijft staan.
-    const plan = loadPlan(t.dataset.again);
-    if (!plan) return;
-    const now = new Date();
-    const newId = `${plan.id}-r${now.getTime().toString(36)}`;
-    const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    savePlan({ ...plan, id: newId, date: ymd });
-    location.href = `train.html?id=${encodeURIComponent(newId)}`;
-    return;
-  }
-  if (t.dataset.del) { pendingDel = t.dataset.del; renderSessions(); return; }
-  if (t.dataset.delno) { pendingDel = null; renderSessions(); return; }
-  if (t.dataset.delok) {
-    removeSession(t.dataset.delok);
-    pendingDel = null;
-    renderSessions();
-  }
-});
 
 async function load() {
   lib = await (await fetch(new URL("./data/library.json", import.meta.url))).json();
   $("groups").innerHTML = lib.groups.map((g) =>
-    `<label class="chip"><input type="checkbox" name="g" value="${g.id}"><span>${esc(g.label)}</span></label>`
+    `<label class="chip"><input type="checkbox" name="g" value="${g.id}"><span>${esc(t("group." + g.id))}</span></label>`
   ).join("");
-
-  // Startgewichten: uit Strava (data/history.json), daarna overschreven door wat je zelf in de app hebt gedaan.
+  // Startgewichten: uit Strava (data/history.json), daarna overschreven door wat je zelf hebt gedaan.
   try {
     const seed = await (await fetch(new URL("./data/history.json", import.meta.url))).json();
     Object.assign(hist, seed.gewichten || {});
   } catch (e) {}
-  try {
-    Object.assign(hist, JSON.parse(localStorage.getItem("fw-hist")) || {});
-  } catch (e) {}
+  try { Object.assign(hist, JSON.parse(localStorage.getItem("fw-hist")) || {}); } catch (e) {}
 }
 
 function showResult(w) {
   $("rtitle").textContent = w.title;
-  $("rest").textContent = `Schatting ${w.estMinutes} min, ${w.blocks.reduce((n, b) => n + b.exercises.length, 0)} oefeningen`;
+  $("rest").textContent = t("index.estimate", { min: w.estMinutes, n: w.blocks.reduce((n, b) => n + b.exercises.length, 0) });
   $("rnotes").innerHTML = w.notes.map((n) => `<p>${esc(n)}</p>`).join("");
   $("rnotes").hidden = !w.notes.length;
   $("rplan").innerHTML = w.blocks.map((b) =>
     `<li class="blk" style="display:block;border:0;padding:0">${esc(b.tag ? b.tag + " · " : "")}${esc(b.title)}</li>` +
     b.exercises.map((ex) => {
       const s = ex.sets[0];
-      const kg = s.weight == null ? "gewicht invullen" : `${ex.dumbbell ? "2 × " + fmtNum(s.weight) : fmtNum(s.weight)} kg`;
+      const kg = s.weight == null ? t("index.enterWeight") : `${ex.dumbbell ? t("pre.db") + " " + fmtNum(s.weight) : fmtNum(s.weight)} ${t("unit.kg")}`;
       return `<li><span class="nm">${esc(ex.name)}</span><span class="sc">${ex.sets.length} × ${s.reps ?? "–"} · ${kg}</span></li>`;
     }).join("")
   ).join("");
@@ -278,10 +176,15 @@ function showResult(w) {
   $("result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-$("form").addEventListener("submit", (e) => {
+$("startnew").addEventListener("click", () => {
+  $("newbox").hidden = false;
+  $("newbox").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+$("newbox").addEventListener("submit", (e) => {
   e.preventDefault();
   const groups = [...document.querySelectorAll('input[name="g"]:checked')].map((i) => i.value);
-  if (!groups.length) { $("err").textContent = "Kies minstens één spiergroep."; return; }
+  if (!groups.length) { $("err").textContent = t("index.pickGroup"); return; }
   $("err").textContent = "";
   const input = {
     groups,
@@ -299,11 +202,11 @@ $("form").addEventListener("submit", (e) => {
 
 $("again").addEventListener("click", () => {
   $("result").hidden = true;
-  $("form").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("newbox").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
-renderSessions();
-load().catch(() => { $("err").textContent = "De oefeningen laden lukt niet. Controleer je verbinding en herlaad de pagina."; });
+load().catch(() => { $("err").textContent = t("index.loadErr"); });
+loadHome().catch(() => {});
 </script>
 </body>
 </html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="hist.title">History</title>
+<meta name="description" content="Average weights and personal records per exercise.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="ui.css">
+<style>
+.ex { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.ex:last-child { border-bottom: 0; padding-bottom: 0; }
+.ex:first-child { padding-top: 0; }
+.ex .nm { font-weight: 600; font-size: 16px; }
+.kv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.kv div { display: flex; flex-direction: column; }
+.kv span.k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.kv span.v { font-family: var(--font-num); font-size: 15px; }
+.kv span.v.pr { color: var(--accent); font-weight: 600; }
+.last { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="nav"></div>
+
+<div class="wrap">
+  <header class="stack">
+    <div class="eyebrow" data-i18n="eyebrow">Fitness</div>
+    <h1 data-i18n="hist.title">History</h1>
+    <p class="meta" data-i18n="hist.meta">Per exercise: your average weight, your personal record and an estimated 1RM (calculated with Epley's formula: weight × (1 + reps / 30)). Dumbbells are the total of both hands.</p>
+  </header>
+
+  <section class="card" id="box">
+    <p class="note" data-i18n="hist.loading">Loading data…</p>
+  </section>
+</div>
+
+<script type="module">
+import { renderNav } from "./nav.js";
+import { allRecords, buildHistory, fmtKg } from "./stats.js";
+import { initPage, t, locale } from "./i18n.js";
+
+initPage();
+renderNav("geschiedenis");
+const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const n1 = (x) => String(Math.round(x * 10) / 10).replace(".", ",");
+const dateShort = (d) => new Date(d + "T12:00:00").toLocaleDateString(locale(), { day: "numeric", month: "short" });
+const $box = () => document.getElementById("box");
+
+function render(rows, nTrain) {
+  if (!rows.length) {
+    $box().innerHTML = `<p class="note">${t("hist.empty")}</p>`;
+    return;
+  }
+  const items = rows.map((r) => {
+    const pr = r.pr ? `${fmtKg(r.pr.total, r.dumbbell, r.pr.perHand)} × ${r.pr.reps ?? "–"}` : "–";
+    const avg = r.avg != null ? fmtKg(r.avg, r.dumbbell, r.avg / (r.dumbbell ? 2 : 1)) : "–";
+    const e1 = r.e1rm != null ? fmtKg(r.e1rm, false) : "–";
+    const last = r.last ? `${fmtKg(r.last.total, r.dumbbell, r.last.perHand)} × ${r.last.reps ?? "–"} ${t("hist.on")} ${dateShort(r.last.date)}` : "";
+    return `<div class="ex">
+      <span class="nm">${esc(r.name)}</span>
+      <div class="kv">
+        <div><span class="k">${t("hist.pr")}</span><span class="v pr">${esc(pr)}</span></div>
+        <div><span class="k">${t("hist.avg")}</span><span class="v">${esc(avg)}</span></div>
+        <div><span class="k">${t("hist.e1rm")}</span><span class="v">${esc(e1)}</span></div>
+        <div><span class="k">${t("hist.count")}</span><span class="v">${r.count} / ${r.sessions}</span></div>
+      </div>
+      <span class="last">${esc(t("hist.last", { text: last }))}</span>
+    </div>`;
+  }).join("");
+  const badge = nTrain === 1 ? t("tr.badge.one") : t("tr.badge.many", { n: nTrain });
+  $box().innerHTML = `<div class="section-title"><h2>${t("hist.perEx")}</h2><span class="badge">${badge}</span></div>${items}`;
+}
+
+(async () => {
+  const recs = (await allRecords()).filter((r) => (r.state.done ? Object.keys(r.state.done).length : 0) > 0);
+  render(buildHistory(recs), recs.length);
+})().catch(() => { $box().innerHTML = `<p class="note">${t("hist.loadErr")}</p>`; });
+</script>
+</body>
+</html>

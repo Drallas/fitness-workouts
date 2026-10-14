@@ -1,6 +1,7 @@
 import { buildFit, buildWorkoutFit } from "./fit.js";
 import { savePlan, loadPlan, upsertSession, setStatus } from "./store.js";
 import { renderShare, SHARE_FORMATS } from "./share.js";
+import { t, initPage, locale } from "./i18n.js";
 
 // Pas geladen bij het exporteren, zodat de sets ook renderen als de CDN niet bereikbaar is.
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@garmin/fitsdk@21.217.0/src/index.js";
@@ -9,7 +10,7 @@ const loadSdk = () => (sdkPromise ??= import(SDK_URL));
 
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const fmtTime = (ms) => new Date(ms).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+const fmtTime = (ms) => new Date(ms).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
 const fmtSec = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 const fmtNum = (n) => String(n).replace(".", ",");
 
@@ -18,6 +19,29 @@ let W; // workout JSON
 let KEY;
 let state = { startMs: null, vals: {}, done: {}, pauses: [] };
 const setIndex = {}; // setId -> { ex, set, i }
+const exById = {};   // oefening-id -> oefening, voor de uitleg-overlay
+
+// Uitleg-overlay: plaatje (als die er is) en één YouTube-zoeklink. Sluit met de knop of met Escape.
+const infoDlg = () => document.getElementById("info");
+function openInfo(ex) {
+  const d = infoDlg();
+  const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " techniek");
+  const pic = ex.img
+    ? `<img class="infopic" src="${esc(ex.img)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()">`
+    : "";
+  d.querySelector(".infobody").innerHTML = `
+    <h2>${esc(ex.name)}</h2>
+    ${ex.dumbbell ? `<p class="note">${t("unit.perDumbbell")}</p>` : ""}
+    ${pic}
+    <a class="ytlink" href="${esc(yt)}" target="_blank" rel="noopener">${t("train.searchYt")} ↗</a>
+    <button class="btn" type="button" data-close>${t("train.close")}</button>`;
+  d.showModal();
+}
+document.addEventListener("click", (e) => {
+  const info = e.target.closest("[data-info]");
+  if (info) { openInfo(exById[info.dataset.info]); return; }
+  if (e.target.closest("[data-close]") || e.target === infoDlg()) infoDlg().close();
+});
 
 // Pas bewaren als de training gestart is. Daarvoor blijft alles in het geheugen van de pagina.
 function save() {
@@ -97,7 +121,7 @@ function summary() {
     .filter((b) => b.sets > 0);
   return {
     title: W.title,
-    dateLabel: new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+    dateLabel: new Date(W.date + "T12:00:00").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
     startLabel: start ? fmtTime(start) : "",
     sets: done.length,
     volume,
@@ -113,14 +137,10 @@ function render() {
   for (const b of W.blocks) {
     html += `<section><div class="sechead">${b.tag ? `<span class="tag">${esc(b.tag)}</span>` : ""}<h2>${esc(b.title)}</h2></div>`;
     for (const ex of b.exercises) {
-      const nameHtml = ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener">${esc(ex.name)}</a>` : esc(ex.name);
-      // Plaatje van de oefening; zonder plaatje een vak met een YouTube-zoeklink.
-      const link = ex.demo || "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " techniek");
-      const thumb = ex.img
-        ? `<a class="thumb" href="${esc(link)}" target="_blank" rel="noopener"><img src="${esc(ex.img)}" alt="${esc(ex.name)}" loading="lazy"><span class="ov">Uitleg ↗</span></a>`
-        : `<a class="thumb ph" href="${esc(link)}" target="_blank" rel="noopener"><span class="ov">▶ Zoek op YouTube</span></a>`;
-      html += `<div class="ex"><div class="exhead">${thumb}<div class="exname">${nameHtml}</div></div>
-        <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.dumbbell ? "<span>per dumbbell</span>" : ""}${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}${ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;font-family:var(--font-body)">uitleg bekijken ↗</a>` : ""}</div>
+      exById[ex.id] = ex;
+      // Eén subtiele link "uitleg ↗" opent een overlay met plaatje en YouTube-link. Geen grote knop op de pagina.
+      html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
+        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button></div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -142,12 +162,6 @@ function render() {
     html += `</section>`;
   }
   $("sections").innerHTML = html;
-  // Lukt een plaatje niet, dan toont het vak de YouTube-zoeklink.
-  document.querySelectorAll(".thumb img").forEach((img) => img.addEventListener("error", () => {
-    const a = img.parentNode;
-    a.classList.add("ph");
-    a.innerHTML = '<span class="ov">▶ Zoek op YouTube</span>';
-  }));
   $("total").dataset.total = total;
   updateProgress();
 }
@@ -155,19 +169,19 @@ function render() {
 function updateProgress() {
   const total = Number($("total").dataset.total || 0);
   const done = Object.keys(state.done).length;
-  $("pc").textContent = `${done} / ${total} sets`;
+  $("pc").textContent = t("train.progress", { done, total });
   const p = total ? Math.round((done / total) * 100) : 0;
   $("pp").textContent = `${p}%`;
   $("barfill").style.width = `${p}%`;
-  let info = state.startMs ? `Gestart om ${fmtTime(state.startMs)}` : sessionStart() ? `Starttijd schatting ${fmtTime(sessionStart())}` : "Nog niet gestart";
-  if (isPaused()) info += " · gepauzeerd";
+  let info = state.startMs ? t("train.startedAt", { time: fmtTime(state.startMs) }) : sessionStart() ? t("train.estStart", { time: fmtTime(sessionStart()) }) : t("train.notStarted");
+  if (isPaused()) info += " · " + t("train.paused");
   $("startinfo").textContent = info;
   if (state.startMs && !READONLY) setStatus(W.id, done === total && total ? "klaar" : "bezig");
   // Export is er altijd, ook voor je de eerste set hebt afgevinkt.
   $("exportrow").hidden = false;
   $("startbtn").hidden = !!state.startMs;
   $("pausebtn").hidden = !state.startMs || READONLY;
-  $("pausebtn").textContent = isPaused() ? "Hervat training" : "Pauze";
+  $("pausebtn").textContent = isPaused() ? t("train.resume") : t("train.pause");
   $("pausebtn").setAttribute("aria-pressed", String(isPaused()));
 }
 
@@ -188,7 +202,7 @@ function togglePause() {
       restLeft = Math.max(0, endAt - now);
       clearInterval(tmr);
       tmr = null;
-      $("tl").textContent = "Gepauzeerd";
+      $("tl").textContent = t("train.restPaused");
       $("tt").textContent = fmtSec(Math.ceil(restLeft / 1000));
     }
   }
@@ -207,7 +221,7 @@ function startRest(sec, name) {
   restLeft = null;
   $("timer").hidden = false;
   $("timer").classList.remove("end");
-  $("tl").textContent = `Rust na ${name}`;
+  $("tl").textContent = t("train.restAfter", { name });
   tick();
   tmr = setInterval(tick, 250);
 }
@@ -217,7 +231,7 @@ function tick() {
     clearInterval(tmr);
     tmr = null;
     $("tt").textContent = "0:00";
-    $("tl").textContent = "Volgende set";
+    $("tl").textContent = t("train.nextSet");
     $("timer").classList.add("end");
     try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
     return;
@@ -278,14 +292,14 @@ $("reset").addEventListener("click", () => {
   const rb = $("reset");
   if (!armed) {
     armed = true;
-    rb.textContent = "Tik nogmaals om alles te wissen";
-    setTimeout(() => { armed = false; rb.textContent = "Wis ingevulde waarden"; }, 4000);
+    rb.textContent = t("train.resetArmed");
+    setTimeout(() => { armed = false; rb.textContent = t("train.reset"); }, 4000);
     return;
   }
   state = { startMs: null, vals: {}, done: {}, pauses: [] };
   save();
   armed = false;
-  rb.textContent = "Wis ingevulde waarden";
+  rb.textContent = t("train.reset");
   stopRest();
   render();
 });
@@ -326,9 +340,9 @@ $("wodbtn").addEventListener("click", async () => {
     const sdk = await loadSdk();
     const bytes = buildWorkoutFit(sdk, { title: W.title, steps: plannedSteps() });
     download(new Blob([bytes], { type: "application/vnd.ant.fit" }), `${W.id}-workout.fit`);
-    $("msg").textContent = "Workout-bestand gemaakt. Bij Garmin Connect komt dit onder Trainingen, niet als activiteit.";
+    $("msg").textContent = t("msg.wodOk");
   } catch (e) {
-    $("msg").textContent = "Workout-bestand lukte niet: de FIT-bibliotheek laadt niet. Controleer je verbinding en probeer opnieuw.";
+    $("msg").textContent = t("msg.wodErr");
   }
 });
 
@@ -339,20 +353,20 @@ $("fitbtn").addEventListener("click", async () => {
     const start = sessionStart();
     const bytes = buildFit(sdk, { sessionStartMs: start ? adj(start) : null, sets: done, title: W.title });
     download(new Blob([bytes], { type: "application/vnd.ant.fit" }), `${W.id}.fit`);
-    $("msg").textContent = "FIT-bestand gemaakt. Upload het bij Garmin Connect (Activiteiten → Importeren) of direct bij Strava.";
+    $("msg").textContent = t("msg.fitOk");
   } catch (e) {
-    $("msg").textContent = "FIT-bestand lukte niet: de FIT-bibliotheek laadt niet. Controleer je verbinding en probeer opnieuw.";
+    $("msg").textContent = t("msg.fitErr");
   }
 });
 
 // Afronden: de training krijgt de status afgerond en je downloadt een bestand met plan en resultaten.
 // Dat bestand zet Claude in de repo (workouts/done/), waarna de training op GitHub staat.
 $("finishbtn").addEventListener("click", () => {
-  if (!state.startMs) { $("msg").textContent = "Start de training eerst."; return; }
+  if (!state.startMs) { $("msg").textContent = t("msg.startFirst"); return; }
   const rec = { versie: 1, plan: W, state, afgerond: new Date().toISOString() };
   download(new Blob([JSON.stringify(rec, null, 2)], { type: "application/json" }), `${W.id}.json`);
   setStatus(W.id, "klaar");
-  $("msg").textContent = "Training afgerond en in de lijst gezet. Stuur het gedownloade bestand naar Claude; dan komt de training op GitHub.";
+  $("msg").textContent = t("msg.finishOk");
 });
 
 document.querySelectorAll("[data-share]").forEach((btn) => {
@@ -368,7 +382,7 @@ document.querySelectorAll("[data-share]").forEach((btn) => {
       }
     } catch (e) { /* gedeeld of geannuleerd: dan niet downloaden */ return; }
     download(blob, name);
-    $("msg").textContent = `Plaatje voor ${SHARE_FORMATS[kind].label} gemaakt (${SHARE_FORMATS[kind].w}×${SHARE_FORMATS[kind].h}).`;
+    $("msg").textContent = t("msg.shareOk", { label: SHARE_FORMATS[kind].label, w: SHARE_FORMATS[kind].w, h: SHARE_FORMATS[kind].h });
   });
 });
 
@@ -395,6 +409,7 @@ function addDemoLinks(w) {
 
 // Start: een gegenereerde workout uit de startpagina, tenzij ?w=push, dan de pushdag als voorbeeld.
 (async function init() {
+  initPage();
   const params = new URLSearchParams(location.search);
   let loaded = null;
   if (params.get("file")) {
@@ -422,7 +437,7 @@ function addDemoLinks(w) {
   if (state.startMs && !READONLY) upsertSession({ id: W.id, title: W.title, date: W.date, startMs: state.startMs, status: "bezig" });
   document.title = W.title;
   $("wtitle").textContent = W.title;
-  $("wdate").textContent = new Date(W.date + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  $("wdate").textContent = new Date(W.date + "T12:00:00").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   $("rule").hidden = !W.id.startsWith("push");
   if (READONLY) {
     $("reset").hidden = true;

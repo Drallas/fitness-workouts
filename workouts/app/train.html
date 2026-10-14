@@ -1,196 +1,155 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Training</title>
+<title data-i18n="train.title">Training</title>
 <meta name="description" content="Krachttraining afvinken, FIT-bestand maken voor Garmin en Strava, en deelplaatjes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="ui.css">
 <style>
-:root {
-  --bg: #edf0f3; --surface: #ffffff; --ink: #16212b; --muted: #5b6b79; --line: #d3dae1;
-  --accent: #0e6f68; --accent-ink: #ffffff; --warm: #b4540a; --soft: #e3ecee;
-  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --font-body: "IBM Plex Sans", system-ui, sans-serif;
-  --font-num: "IBM Plex Mono", ui-monospace, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6; --line: #2a3844;
-    --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6; --line: #2a3844;
-  --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33; color-scheme: dark;
-}
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-body {
-  margin: 0; background: var(--bg); color: var(--ink);
-  font-family: var(--font-body); font-size: 18px; line-height: 1.5;
-  padding-inline: 16px; padding-block: 0 150px;
-  overflow-wrap: normal; word-break: normal; hyphens: manual;
-}
-.wrap { width: 100%; max-width: 680px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
-h1 { font-size: 46px; line-height: 1.05; }
-h2 { font-size: 30px; line-height: 1.1; }
-.eyebrow { font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
-.back { font-size: 16px; color: var(--accent); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; }
-header { display: flex; flex-direction: column; gap: 8px; }
-.meta { color: var(--muted); margin: 0; font-size: 17px; }
-.progress { position: sticky; top: 58px; z-index: 5; background: var(--bg); padding-block: 10px; display: flex; flex-direction: column; gap: 8px; }
-.bar { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+/* Alleen wat deze pagina extra nodig heeft; de basis (kleuren, menu, knoppen) komt uit ui.css. */
+body { padding-bottom: 150px; }
+.progress { position: sticky; top: var(--navh); z-index: 5; background: var(--bg); padding-block: 8px; display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
-.pcount { font-family: var(--font-num); font-size: 16px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.startrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.btn { font: inherit; font-weight: 600; font-size: 18px; min-height: 48px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; cursor: pointer; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-.export { display: flex; flex-direction: column; gap: 12px; }
-.export .row { display: flex; gap: 10px; flex-wrap: wrap; }
-.note { margin: 0; font-size: 16px; color: var(--muted); }
-#msg { margin: 0; font-size: 17px; color: var(--ink); min-height: 1em; }
-.rule { background: var(--soft); padding: 14px 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; }
-.rule p { margin: 0; font-size: 17px; color: var(--ink); }
-section { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.sechead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.tag { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--accent-ink); background: var(--accent); min-width: 32px; text-align: center; padding: 0 8px; border-radius: 4px; }
-.ex { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); min-width: 0; }
+.pcount { font-family: var(--font-num); font-size: 14px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.startrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.sechead { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.tag { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--accent-ink); background: var(--accent); min-width: 28px; text-align: center; padding: 0 6px; border-radius: 4px; }
+.export { display: flex; flex-direction: column; gap: 10px; }
+#msg { margin: 0; font-size: 15px; color: var(--ink); min-height: 1em; }
+.rule { background: var(--soft); padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
+.rule p { margin: 0; font-size: 15px; color: var(--ink); }
+/* Oefening: plaatje links, naam rechts. Zonder plaatje een vak met een YouTube-zoeklink. */
+.ex { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); min-width: 0; }
 .ex:first-of-type { border-top: 0; padding-top: 0; }
-.exname { font-weight: 600; font-size: 21px; line-height: 1.3; }
+.exhead { display: flex; gap: 10px; align-items: center; min-width: 0; }
+.exname { font-weight: 600; font-size: 17px; line-height: 1.25; min-width: 0; }
 .exname a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
-.facts { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--font-num); font-size: 15px; color: var(--muted); }
+.thumb { flex: 0 0 88px; width: 88px; height: 66px; border-radius: 8px; overflow: hidden; position: relative; background: var(--soft); border: 1px solid var(--line); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .ov { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(8, 14, 20, .72); color: #fff; font-size: 11px; line-height: 1.2; padding: 3px 5px; text-decoration: none; font-weight: 600; }
+.thumb.ph { display: flex; align-items: center; justify-content: center; }
+.thumb.ph .ov { position: static; background: none; color: var(--accent); font-size: 13px; text-align: center; padding: 4px; }
+.facts { display: flex; flex-wrap: wrap; gap: 2px 12px; font-family: var(--font-num); font-size: 13px; color: var(--muted); }
 .facts .rest { color: var(--warm); }
-.sets { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
-/* Per set twee regels: naam bovenaan, gewicht en reps eronder. Geen woorden die midden in het woord breken. */
+.sets { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+/* Per set twee regels: naam bovenaan, gewicht en reps eronder. */
 .set {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1fr);
   grid-template-areas: "cb lbl lbl" "cb r w";
-  column-gap: 10px; row-gap: 10px; align-items: center;
-  padding-bottom: 14px; border-bottom: 1px dashed var(--line);
+  column-gap: 8px; row-gap: 8px; align-items: center;
+  padding-bottom: 10px; border-bottom: 1px dashed var(--line);
 }
 .set:last-child { border-bottom: 0; padding-bottom: 0; }
 .set input[type="checkbox"] { grid-area: cb; }
-.set label.lbl { grid-area: lbl; font-size: 18px; min-width: 0; }
+.set label.lbl { grid-area: lbl; font-size: 15px; min-width: 0; }
 .set .fld.r { grid-area: r; }
 .set .fld.w { grid-area: w; }
-.fld { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.fld input { flex: 1 1 auto; }
-.fld .pre { font-family: var(--font-num); font-size: 17px; color: var(--muted); white-space: nowrap; }
-.fld .unit { font-size: 15px; color: var(--muted); white-space: nowrap; }
+.fld { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.fld input { flex: 1 1 auto; height: 40px; }
+.fld .pre { font-family: var(--font-num); font-size: 14px; color: var(--muted); white-space: nowrap; }
+.fld .unit { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .set.done .lbl { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
 .set.done input[type="text"] { opacity: .65; }
 input[type="checkbox"] {
-  appearance: none; -webkit-appearance: none; width: 40px; height: 40px; margin: 0;
+  appearance: none; -webkit-appearance: none; width: 34px; height: 34px; margin: 0;
   border: 2px solid var(--muted); border-radius: 8px; background: var(--surface); display: grid; place-content: center; cursor: pointer;
 }
 input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
-input[type="checkbox"]:checked::after { content: ""; width: 8px; height: 16px; border: solid var(--accent-ink); border-width: 0 3px 3px 0; transform: translateY(-1px) rotate(45deg); }
-/* 16px of meer voorkomt dat iOS Safari op het veld inzoomt */
-input[type="text"] {
-  width: 100%; min-width: 0; height: 50px; padding: 0 10px; text-align: right;
-  font-family: var(--font-num); font-size: 20px; color: var(--ink); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 8px;
-}
+input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; border: solid var(--accent-ink); border-width: 0 3px 3px 0; transform: translateY(-1px) rotate(45deg); }
+/* 16px voorkomt dat iOS Safari op het veld inzoomt */
+.set input[type="text"] { text-align: right; font-size: 16px; }
+#pausebtn[aria-pressed="true"] { border-color: var(--warm); color: var(--warm); }
 .timer {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
   background: var(--ink); color: var(--bg);
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
-  display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
 }
-.timer .t { font-family: var(--font-num); font-size: 36px; font-weight: 500; }
-.timer .l { font-size: 17px; opacity: .9; }
-#pausebtn[aria-pressed="true"] { border-color: var(--warm); color: var(--warm); }
-.timer button { font: inherit; font-size: 17px; font-weight: 600; background: transparent; color: inherit; border: 1.5px solid currentColor; border-radius: 8px; padding: 10px 18px; min-height: 46px; cursor: pointer; }
+.timer .t { font-family: var(--font-num); font-size: 30px; font-weight: 500; }
+.timer .l { font-size: 15px; opacity: .9; }
+.timer button { font: inherit; font-size: 15px; font-weight: 600; background: transparent; color: inherit; border: 1.5px solid currentColor; border-radius: 8px; padding: 6px 14px; min-height: 40px; cursor: pointer; }
 .timer.end { background: var(--accent); color: var(--accent-ink); }
-/* Menubalk bovenin */
-.top {
-  position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line);
-  margin: 0 -16px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
-  display: flex; gap: 6px; flex-wrap: wrap; align-items: center; max-width: none;
-}
-.top .brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-right: auto; color: var(--ink); }
-.top a.nv { font-weight: 600; color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 8px; }
-.top a.nv[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
-.top a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-/* Oefening: plaatje links, naam rechts. Zonder plaatje een vak met een YouTube-zoeklink. */
-.exhead { display: flex; gap: 12px; align-items: center; min-width: 0; }
-.thumb { flex: 0 0 104px; width: 104px; height: 78px; border-radius: 8px; overflow: hidden; position: relative; background: var(--soft); border: 1px solid var(--line); }
-.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.thumb .ov { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(8, 14, 20, .72); color: #fff; font-size: 12px; line-height: 1.2; padding: 4px 6px; text-decoration: none; font-weight: 600; }
-.thumb.ph { display: flex; align-items: center; justify-content: center; }
-.thumb.ph .ov { position: static; background: none; color: var(--accent); font-size: 14px; text-align: center; padding: 6px; }
-.exhead .exname { min-width: 0; }
-.reset { align-self: flex-start; font: inherit; font-size: 16px; min-height: 44px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+/* Uitleg: één subtiele link per oefening, die een overlay opent. */
+.infolink { font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+#info { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 16px; width: min(92vw, 420px); max-height: 85vh; }
+#info::backdrop { background: rgba(8, 14, 20, .5); }
+#info .infobody { display: flex; flex-direction: column; gap: 10px; }
+#info .infopic { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); }
+#info .ytlink { font-size: 15px; font-weight: 600; color: var(--accent); }
+.reset { align-self: flex-start; font: inherit; font-size: 14px; min-height: 40px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 </style>
 </head>
 <body>
-<nav class="top" aria-label="Hoofdmenu">
-  <span class="brand">Trainingen</span>
-  <a class="nv" href="./">Start</a>
-  <a class="nv" href="instellingen.html">Instellingen</a>
-</nav>
+<div id="nav"></div>
+
 <div class="wrap">
 
-  <header>
+  <header class="stack">
     <div class="eyebrow" id="wdate"></div>
-    <h1 id="wtitle">Training</h1>
-    <p class="meta">Vink elke set af zodra je klaar bent. De tijd per set is de tijd sinds je vorige afvinking, dus inclusief rust.</p>
+    <h1 id="wtitle" data-i18n="train.title">Training</h1>
+    <p class="meta" data-i18n="train.meta">Tick off each set when you're done. The time per set is the time since your previous tick, so it includes rest.</p>
   </header>
 
   <div class="progress">
     <div class="bar"><i id="barfill"></i></div>
     <div class="pcount"><span id="pc">0 / 0 sets</span><span id="pp">0%</span></div>
     <div class="startrow">
-      <button class="btn primary" id="startbtn" type="button">Start training</button>
-      <button class="btn" id="pausebtn" type="button" aria-pressed="false" hidden>Pauze</button>
+      <button class="btn primary" id="startbtn" type="button" data-i18n="train.start">Start training</button>
+      <button class="btn" id="pausebtn" type="button" aria-pressed="false" hidden data-i18n="train.pause">Pause</button>
       <span class="note" id="startinfo"></span>
     </div>
   </div>
 
   <div class="rule" id="notes" hidden></div>
-  <div class="rule" id="rule" hidden><p class="note">Afschakelen: voelt set 1 van de bench al als RPE 9, of haal je minder dan 7 herhalingen, dan gaat blok B terug naar 2 rondes en vervalt de rust-pause bij C.</p></div>
+  <div class="rule" id="rule" hidden><p class="note" data-i18n="train.rule">Stop rule: if set 1 of the bench already feels like RPE 9, or you get fewer than 7 reps, block B drops back to 2 rounds and the rest pause at C is skipped.</p></div>
 
   <div id="total" hidden></div>
-  <div id="sections" class="wrap" style="gap:14px"></div>
+  <div id="sections" class="wrap" style="gap:12px; padding-top:0"></div>
 
   <div class="card export" id="exportrow" hidden>
-    <h2>Afronden</h2>
-    <p class="note">De workout is het geplande schema: Garmin zet die onder Trainingen. De activiteit bevat wat je werkelijk hebt afgevinkt, met tijden. Upload die bij Garmin Connect (Activiteiten → Importeren) en daarna sync je naar Strava.</p>
+    <h2 data-i18n="train.finishTitle">Finish</h2>
+    <p class="note" data-i18n="train.garminText">The workout is the planned schedule: Garmin puts it under Trainings. The activity contains what you actually ticked off, with times. Upload that to Garmin Connect (Activities → Import) and then sync it to Strava.</p>
     <div class="row">
-      <button class="btn primary" id="wodbtn" type="button">Workout voor Garmin (.fit)</button>
-      <button class="btn" id="fitbtn" type="button">Activiteit met afgevinkte sets (.fit)</button>
+      <button class="btn primary" id="wodbtn" type="button" data-i18n="train.wod">Workout for Garmin (.fit)</button>
+      <button class="btn" id="fitbtn" type="button" data-i18n="train.fit">Activity with ticked sets (.fit)</button>
     </div>
-    <p class="note">Afronden: de training gaat naar de lijst. Het bestand dat je dan krijgt, stuur je naar Claude; dan komt de training op GitHub.</p>
+    <p class="note" data-i18n="train.finishText">Finish: the training goes to the list. Send the file you get to Claude; then the training goes on GitHub.</p>
     <div class="row">
-      <button class="btn primary" id="finishbtn" type="button">Rond training af (bestand voor GitHub)</button>
+      <button class="btn primary" id="finishbtn" type="button" data-i18n="train.finish">Finish training (file for GitHub)</button>
     </div>
-    <p class="note">Deelplaatjes</p>
+    <p class="note" data-i18n="train.shareLabel">Share images</p>
     <div class="row">
-      <button class="btn" type="button" data-share="garmin">Garmin</button>
-      <button class="btn" type="button" data-share="strava">Strava</button>
-      <button class="btn" type="button" data-share="instagram">Instagram</button>
+      <button class="btn" type="button" data-share="garmin" data-i18n="train.shareGarmin">Garmin</button>
+      <button class="btn" type="button" data-share="strava" data-i18n="train.shareStrava">Strava</button>
+      <button class="btn" type="button" data-share="instagram" data-i18n="train.shareInsta">Instagram</button>
     </div>
     <p id="msg" role="status"></p>
   </div>
 
-  <button class="reset" id="reset" type="button">Wis ingevulde waarden</button>
+  <button class="reset" id="reset" type="button" data-i18n="train.reset">Clear entered values</button>
 </div>
+
+<dialog id="info" aria-labelledby="info-title"><div class="infobody"></div></dialog>
 
 <div class="timer" id="timer" hidden>
-  <span class="l" id="tl">Rust</span>
+  <span class="l" id="tl">Rest</span>
   <span class="t" id="tt">0:00</span>
-  <button type="button" id="tskip">Stop</button>
+  <button type="button" id="tskip" data-i18n="train.stop">Stop</button>
 </div>
 
+<script type="module">
+import { renderNav } from "./nav.js";
+import { initPage } from "./i18n.js";
+initPage();
+renderNav("trainingen");
+</script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
