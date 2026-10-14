@@ -413,6 +413,55 @@ function addDemoLinks(w) {
   }
 }
 
+// Oefening toevoegen tijdens de training: zoeken in de bibliotheek of een eigen naam typen.
+// Extra oefeningen komen onderaan in een blok met tag "+", zodat de rest van het plan niet verandert.
+let LIB_ADD = [];
+async function loadLibForAdd() {
+  try { LIB_ADD = (await (await fetch(new URL("./data/library.json", import.meta.url))).json()).exercises || []; } catch (e) { LIB_ADD = []; }
+}
+const normTxt = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+function renderAddResults() {
+  const q = $("addq").value.trim();
+  const n = normTxt(q);
+  const hits = n ? LIB_ADD.filter((e) => normTxt(e.name).includes(n) || normTxt(e.subtype).includes(n)).slice(0, 8) : [];
+  const items = hits.map((e) => `<li><button class="btn small addpick" type="button" data-lib="${esc(e.id)}">${esc(e.name)}</button></li>`);
+  if (q) items.push(`<li><button class="btn small addpick" type="button" data-custom="1">${esc(t("add.custom", { name: q }))}</button></li>`);
+  $("addres").innerHTML = items.join("");
+}
+function addExercise(base) {
+  const n = Math.max(1, Math.min(10, parseInt($("addn").value, 10) || 3));
+  const w = $("addw").value.trim().replace(",", ".");
+  const r = $("addr").value.trim();
+  let block = W.blocks[W.blocks.length - 1];
+  if (!block || block.tag !== "+") { block = { tag: "+", title: t("add.block"), exercises: [] }; W.blocks.push(block); }
+  const ex = {
+    id: `x${Date.now().toString(36)}${block.exercises.length}`,
+    name: base.name,
+    category: base.category || "",
+    subtype: base.subtype || "",
+    dumbbell: !!base.dumbbell,
+    rest: base.rest ?? 60,
+    demo: "https://www.youtube.com/results?search_query=" + encodeURIComponent(base.name + " techniek"),
+    sets: Array.from({ length: n }, (_, i) => ({ label: `Set ${i + 1}`, weight: w && !isNaN(Number(w)) ? Number(w) : null, reps: r && !isNaN(Number(r)) ? Number(r) : null })),
+  };
+  block.exercises.push(ex);
+  savePlan(W);
+  // Ook de tab-kopie bijwerken, zodat een herlaad vóór het starten de toevoeging behoudt.
+  try { sessionStorage.setItem("fw-current", JSON.stringify(W)); } catch (e) {}
+  render();
+  $("addq").value = "";
+  $("addres").innerHTML = "";
+  $("msg").textContent = t("add.added", { name: ex.name });
+  document.getElementById(`c-${ex.id}-0`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+$("addq").addEventListener("input", renderAddResults);
+$("addres").addEventListener("click", (e) => {
+  const b = e.target.closest(".addpick");
+  if (!b) return;
+  if (b.dataset.lib) addExercise(LIB_ADD.find((x) => x.id === b.dataset.lib));
+  else addExercise({ name: $("addq").value.trim() });
+});
+
 // Start: een gegenereerde workout uit de startpagina, tenzij ?w=push, dan de pushdag als voorbeeld.
 (async function init() {
   initPage();
@@ -450,6 +499,10 @@ function addDemoLinks(w) {
     $("startbtn").hidden = true;
     $("pausebtn").hidden = true;
     $("finishbtn").hidden = true;
+    $("addcard").hidden = true;
+  } else {
+    $("addcard").hidden = false;
+    loadLibForAdd();
   }
   if (W.notes?.length) {
     $("notes").innerHTML = W.notes.map((n) => `<p>${esc(n)}</p>`).join("");

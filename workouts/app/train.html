@@ -85,6 +85,12 @@ input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; b
 #info .infopic-slot .note { width: 100%; text-align: center; margin: 0; }
 #info .infopic { width: 150px; max-width: 45%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); }
 #info .ytlink { font-size: 15px; font-weight: 600; color: var(--accent); }
+.addres { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.addres .addpick { width: 100%; text-align: left; }
+.addset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.addset label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
+.addset input { height: 40px; font-size: 16px; }
+#addq { height: 40px; font-size: 16px; }
 .reset { align-self: flex-start; font: inherit; font-size: 14px; min-height: 40px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 </style>
 </head>
@@ -114,6 +120,17 @@ input[type="checkbox"]:checked::after { content: ""; width: 7px; height: 14px; b
 
   <div id="total" hidden></div>
   <div id="sections" class="wrap" style="gap:12px; padding-top:0"></div>
+
+  <section class="addcard" id="addcard" hidden>
+    <h2 data-i18n="add.title">Add exercise</h2>
+    <input type="search" id="addq" autocomplete="off" spellcheck="false" data-i18n-attr="placeholder:add.placeholder" placeholder="Search or type an exercise">
+    <ul class="addres" id="addres"></ul>
+    <div class="addset">
+      <label><span data-i18n="add.sets">Sets</span><input type="number" id="addn" min="1" max="10" value="3" inputmode="numeric"></label>
+      <label><span data-i18n="add.kg">kg</span><input type="text" id="addw" inputmode="decimal"></label>
+      <label><span data-i18n="add.reps">Reps</span><input type="text" id="addr" inputmode="numeric"></label>
+    </div>
+  </section>
 
   <div class="card export" id="exportrow" hidden>
     <h2 data-i18n="train.finishTitle">Finish</h2>
