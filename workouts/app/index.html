@@ -160,12 +160,10 @@ async function load() {
     `<label class="chip"><input type="checkbox" name="g" value="${g.id}"><span>${esc(g.label)}</span></label>`
   ).join("");
 
-  // Startgewichten: eerst de pushdag, daarna overschreven door wat je zelf hebt gedaan.
+  // Startgewichten: uit Strava (data/history.json), daarna overschreven door wat je zelf in de app hebt gedaan.
   try {
-    const push = await (await fetch(new URL("./workouts/push-2026-10-13.json", import.meta.url))).json();
-    for (const b of push.blocks) for (const ex of b.exercises) {
-      if (ex.subtype && ex.sets?.length) hist[ex.subtype] = ex.sets.at(-1).weight;
-    }
+    const seed = await (await fetch(new URL("./data/history.json", import.meta.url))).json();
+    Object.assign(hist, seed.gewichten || {});
   } catch (e) {}
   try {
     Object.assign(hist, JSON.parse(localStorage.getItem("fw-hist")) || {});
@@ -203,7 +201,8 @@ $("form").addEventListener("submit", (e) => {
     lastLegsAt: LAST_LEGS,
   };
   const w = generate(input, lib, hist, new Date());
-  try { localStorage.setItem("fw-current", JSON.stringify(w)); } catch (err) {}
+  // Alleen voor deze tab: niets wordt bewaard tot je de training start.
+  try { sessionStorage.setItem("fw-current", JSON.stringify(w)); } catch (err) {}
   showResult(w);
 });
 

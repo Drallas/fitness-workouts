@@ -1,0 +1,18 @@
+{
+  "bron": "Strava, krachttrainingen 08-10 t/m 13-10-2026. Per oefening de laatste werkset; bij dumbbells per hand.",
+  "gewichten": {
+    "barbellBenchPress": 47.5,
+    "inclineDumbbellBenchPress": 30,
+    "dumbbellShoulderPress": 20,
+    "dumbbellLateralRaise": 6,
+    "tricepsPressdown": 15,
+    "bodyWeightDip": 0,
+    "latPulldown": 45,
+    "cableRowStanding": 39,
+    "barbellBicepsCurl": 17.5,
+    "alternatingDumbbellBicepsCurl": 8,
+    "barbellBackSquat": 50,
+    "barbellStraightLegDeadlift": 70,
+    "legPress": 90
+  }
+}

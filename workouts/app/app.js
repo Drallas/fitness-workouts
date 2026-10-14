@@ -17,8 +17,12 @@ let KEY;
 let state = { startMs: null, vals: {}, done: {}, pauses: [] };
 const setIndex = {}; // setId -> { ex, set, i }
 
+// Pas bewaren als de training gestart is. Daarvoor blijft alles in het geheugen van de pagina.
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  try {
+    if (state.startMs) localStorage.setItem(KEY, JSON.stringify(state));
+    else localStorage.removeItem(KEY);
+  } catch (e) {}
 }
 
 // Dumbbell-oefeningen: het ingevoerde gewicht is per hand, het totaal is dat maal twee.
@@ -108,7 +112,7 @@ function render() {
     for (const ex of b.exercises) {
       const nameHtml = ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener">${esc(ex.name)}</a>` : esc(ex.name);
       html += `<div class="ex"><div class="exname">${nameHtml}</div>
-        <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.dumbbell ? "<span>per dumbbell</span>" : ""}${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}</div>
+        <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.dumbbell ? "<span>per dumbbell</span>" : ""}${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}${ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;font-family:var(--font-body)">uitleg bekijken ↗</a>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -144,11 +148,12 @@ function updateProgress() {
   let info = state.startMs ? `Gestart om ${fmtTime(state.startMs)}` : sessionStart() ? `Starttijd schatting ${fmtTime(sessionStart())}` : "Nog niet gestart";
   if (isPaused()) info += " · gepauzeerd";
   $("startinfo").textContent = info;
+  // Export is er altijd, ook voor je de eerste set hebt afgevinkt.
+  $("exportrow").hidden = false;
   $("startbtn").hidden = !!state.startMs;
   $("pausebtn").hidden = !state.startMs;
   $("pausebtn").textContent = isPaused() ? "Hervat training" : "Pauze";
   $("pausebtn").setAttribute("aria-pressed", String(isPaused()));
-  $("exportrow").hidden = done === 0;
 }
 
 function togglePause() {
@@ -243,6 +248,8 @@ $("sections").addEventListener("input", (e) => {
 
 $("startbtn").addEventListener("click", () => {
   state.startMs = Date.now();
+  // Vanaf nu bewaren we het plan zelf, zodat de training na een herlaad of later terug te vinden is.
+  try { localStorage.setItem("fw-active", JSON.stringify(W)); } catch (e) {}
   save();
   updateProgress();
 });
@@ -346,7 +353,7 @@ function loadHist() {
   try { return JSON.parse(localStorage.getItem(HIST_KEY)) || {}; } catch (e) { return {}; }
 }
 function rememberWeight(ex, id, set) {
-  if (!ex.subtype) return;
+  if (!ex.subtype || !state.startMs) return; // niets bewaren vóór de start
   const { perHand } = valueOf(id, set, ex);
   const h = loadHist();
   h[ex.subtype] = perHand;
@@ -365,7 +372,8 @@ function addDemoLinks(w) {
   const params = new URLSearchParams(location.search);
   let loaded = null;
   if (params.get("w") !== "push") {
-    try { loaded = JSON.parse(localStorage.getItem("fw-current")); } catch (e) {}
+    // Eerst het plan van de startpagina (deze tab), anders de laatst gestarte training.
+    try { loaded = JSON.parse(sessionStorage.getItem("fw-current")) || JSON.parse(localStorage.getItem("fw-active")); } catch (e) {}
   }
   W = loaded || await (await fetch(new URL("./workouts/push-2026-10-13.json", import.meta.url))).json();
   addDemoLinks(W);
