@@ -69,10 +69,7 @@
       <button class="btn" id="bkcopy" type="button" data-i18n="bk.copy">Copy</button>
       <button class="btn" id="bkdl" type="button" data-i18n="bk.download">Download as file</button>
     </div>
-    <p class="note" data-i18n="bk.pasteLabel">Paste an export here to import it:</p>
-    <textarea id="bkpaste" class="bkarea" rows="4" spellcheck="false" placeholder="{ ... }"></textarea>
     <div class="row">
-      <button class="btn" id="bkimport" type="button" data-i18n="bk.importBtn">Import</button>
       <label class="btn" for="bkfile" data-i18n="bk.import">Import from file</label>
       <input id="bkfile" type="file" accept=".json,application/json" hidden>
     </div>
@@ -289,7 +286,6 @@ function bkImport(text) {
     $("bkmsg").textContent = err.message === "opslag" ? t("bk.saveErr") : t("bk.bad");
   }
 }
-$("bkimport").addEventListener("click", () => bkImport($("bkpaste").value));
 $("bkfile").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   e.target.value = "";
