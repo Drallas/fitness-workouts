@@ -1,13 +1,8 @@
-// Deelplaatjes voor Garmin, Strava en Instagram. Alles op canvas, geen externe bronnen.
-// Garmin (1080×1080): hoofdcijfer en de drie kengetallen, verder niets.
-// Strava (1080×1080) en Instagram (1080×1350): daarnaast een balk per blok en de zwaarste set per oefening.
-// Alles wordt van boven naar beneden gelegd en begrensd door de voettekst, dus er overlapt niets.
+// Deelplaatje: één formaat voor Strava, Instagram en Garmin: 9:16 (1080×1920).
+// Van boven naar beneden: datum en titel, kengetallen, records, verdeling per blok, en de oefeningen.
+// Alles eindigt boven de voettekst, dus er overlapt niets.
 
-const FORMATS = {
-  garmin: { w: 1080, h: 1080, label: "Garmin" },
-  strava: { w: 1080, h: 1080, label: "Strava" },
-  instagram: { w: 1080, h: 1350, label: "Instagram" },
-};
+export const SHARE_FORMAT = { w: 1080, h: 1920, label: "9:16" };
 
 const C = {
   bg: "#0f171e",
@@ -38,7 +33,7 @@ function wrap(ctx, text, maxW) {
   return lines;
 }
 
-// Grootste lettergrootte tussen startPx en 18px waarbij de tekst binnen maxW past, met het juiste lettertype.
+// Grootste lettergrootte tussen startPx en 18px waarbij de tekst binnen maxW past.
 function fitPx(ctx, text, maxW, startPx, weight, family) {
   let px = startPx;
   while (px > 18) {
@@ -56,113 +51,122 @@ function ellipsize(ctx, text, maxW) {
   return t + "…";
 }
 
-// s: { title, dateLabel, startLabel, sets, volume, minutes, blocks: [{title, sets}], top: [{name, text}] }
-export function renderShare(kind, s) {
-  const f = FORMATS[kind];
-  const W = f.w;
-  const H = f.h;
+// s: { title, dateLabel, startLabel, sets, volume, minutes, blocks: [{title, sets}],
+//      top: [{name, text, count}], records: [{name, text}] }
+export function renderShare(s) {
+  const { w: W, h: H } = SHARE_FORMAT;
   const pad = 80;
   const inner = W - pad * 2;
-  const bottom = H - 160; // alles eindigt hierboven, de voettekst staat eronder
+  const bottom = H - 180;
 
   const cv = document.createElement("canvas");
   cv.width = W;
   cv.height = H;
   const ctx = cv.getContext("2d");
-  const text = (t, x, y, font, color) => {
+  const put = (str, x, y, font, color) => {
     ctx.font = font;
     ctx.fillStyle = color;
-    ctx.fillText(t, x, y);
+    ctx.fillText(str, x, y);
   };
+  const measure = (str, font) => {
+    ctx.font = font;
+    return ctx.measureText(str).width;
+  };
+  const fit = (str, maxW, font) => {
+    ctx.font = font;
+    return ellipsize(ctx, str, maxW);
+  };
+  const label = (str, y) => put(str.toUpperCase(), pad, y, `600 26px ${FONT}`, C.muted);
 
   ctx.fillStyle = C.bg;
   ctx.fillRect(0, 0, W, H);
 
   // datum en titel (max. twee regels)
-  text(s.dateLabel.toUpperCase(), pad, 110, `600 30px ${FONT}`, C.accent);
-  const titlePx = fitPx(ctx, s.title, inner, kind === "instagram" ? 96 : 84, "700", FONT);
+  put(s.dateLabel.toUpperCase(), pad, 130, `600 30px ${FONT}`, C.accent);
+  // grootste letter waarbij de titel in hooguit twee regels past
+  let titlePx = 88;
+  let titleLines;
+  for (; titlePx > 40; titlePx -= 2) {
+    ctx.font = `700 ${titlePx}px ${FONT}`;
+    titleLines = wrap(ctx, s.title, inner);
+    if (titleLines.length <= 2) break;
+  }
   const lh = Math.round(titlePx * 1.1);
   ctx.font = `700 ${titlePx}px ${FONT}`;
   ctx.fillStyle = C.ink;
-  let y = 190;
-  const titleLines = wrap(ctx, s.title, inner);
-  for (const line of titleLines) {
+  let y = 230;
+  for (const line of titleLines.slice(0, 2)) {
     ctx.fillText(line, pad, y);
     y += lh;
   }
-  y -= lh; // baseline van de laatste titelregel
+  let cur = y - lh + 110;
 
-  // hoofdcijfer: het volume
-  const heroLabel = y + 90;
-  const volText = `${Math.round(s.volume).toLocaleString(locale())} ${t("unit.kg")}`;
-  const heroPx = fitPx(ctx, volText, inner, kind === "garmin" ? 230 : 180, "600", MONO);
-  text(t("share.volume"), pad, heroLabel, `600 26px ${FONT}`, C.muted);
-  text(volText, pad, heroLabel + 30 + Math.round(heroPx * 0.72), `600 ${heroPx}px ${MONO}`, C.warm);
-  const heroBase = heroLabel + 30 + Math.round(heroPx * 0.72);
-
-  // kengetallen: sets, duur, oefeningen
-  const statsLabel = heroBase + 90;
+  // kengetallen: sets, duur, volume
   const colW = inner / 3;
   const stats = [
-    [t("share.sets"), String(s.sets)],
-    [t("share.duration"), `${Math.round(s.minutes)} ${t("unit.min")}`],
-    [t("share.exercises"), String(s.top.length)],
+    [t("share.sets"), String(s.sets), C.ink],
+    [t("share.duration"), `${Math.round(s.minutes)} ${t("unit.min")}`, C.ink],
+    [t("share.volume"), `${Math.round(s.volume).toLocaleString(locale())} ${t("unit.kg")}`, C.warm],
   ];
-  stats.forEach(([label, value], i) => {
+  stats.forEach(([lab, val, color], i) => {
     const x = pad + i * colW;
-    text(label.toUpperCase(), x, statsLabel, `600 24px ${FONT}`, C.muted);
-    const px = fitPx(ctx, value, colW - 24, 64, "600", MONO);
-    text(value, x, statsLabel + 70, `600 ${px}px ${MONO}`, C.ink);
+    put(lab.toUpperCase(), x, cur, `600 24px ${FONT}`, C.muted);
+    const px = fitPx(ctx, val, colW - 24, 64, "600", MONO);
+    put(val, x, cur + 74, `600 ${px}px ${MONO}`, color);
   });
-  let cursor = statsLabel + 70;
+  cur += 74 + 80;
 
-  if (kind === "garmin") return footer(ctx, s, W, H, pad);
-
-  // balk per blok: hoeveel sets je per spiergroep hebt afgevinkt
-  const blocks = s.blocks || [];
-  const maxSets = Math.max(1, ...blocks.map((b) => b.sets));
-  const barRowH = kind === "instagram" ? 84 : 66;
-  const barsLabel = cursor + 80;
-  const barFit = Math.max(0, Math.floor((bottom - barsLabel - 50) / barRowH) + 1);
-  // Alleen op Instagram (hoger formaat); op het vierkante Strava-plaatje krijgt de lijst de ruimte.
-  const shownBlocks = kind === "instagram" ? blocks.slice(0, barFit) : [];
-  if (shownBlocks.length) {
-    text(t("share.perBlock"), pad, barsLabel, `600 24px ${FONT}`, C.muted);
-    shownBlocks.forEach((b, i) => {
-      const base = barsLabel + 50 + i * barRowH;
-      ctx.font = `600 30px ${FONT}`;
-      const countText = String(b.sets);
-      const countW = (() => { ctx.font = `600 30px ${MONO}`; return ctx.measureText(countText).width; })();
-      text(ellipsize(ctx, b.title, inner - countW - 30) , pad, base, `600 30px ${FONT}`, C.ink);
-      text(countText, W - pad - countW, base, `600 30px ${MONO}`, C.accent);
-      ctx.fillStyle = C.line;
-      ctx.fillRect(pad, base + 18, inner, 14);
-      ctx.fillStyle = C.accent;
-      ctx.fillRect(pad, base + 18, Math.max(6, inner * (b.sets / maxSets)), 14);
-    });
-    cursor = barsLabel + 50 + (shownBlocks.length - 1) * barRowH + 32;
+  // records: gewichtrecords en reps-records van vandaag, alleen als er echt een is
+  const records = (s.records || []).slice(0, 4);
+  if (records.length) {
+    label(t("share.records"), cur);
+    cur += 46;
+    for (const r of records) {
+      const vw = measure(r.text, `600 28px ${MONO}`);
+      put(fit(r.name, inner - vw - 30, `600 32px ${FONT}`), pad, cur, `600 32px ${FONT}`, C.ink);
+      put(r.text, W - pad - vw, cur, `600 28px ${MONO}`, C.warm);
+      cur += 68;
+    }
+    cur += 24;
   }
 
-  // zwaarste set per oefening
-  if (s.top.length) {
-    const listRowH = kind === "instagram" ? 80 : 64;
-    const listLabel = cursor + 80;
-    const fit = Math.max(0, Math.floor((bottom - listLabel - 50) / listRowH) + 1);
-    if (fit > 0) {
-      const hidden = s.top.length > fit ? s.top.length - (fit - 1) : 0;
-      const shown = hidden ? s.top.slice(0, fit - 1) : s.top.slice(0, fit);
-      text(t("share.heaviest"), pad, listLabel, `600 24px ${FONT}`, C.muted);
-      shown.forEach((r, i) => {
-        const base = listLabel + 50 + i * listRowH;
-        ctx.font = `600 34px ${MONO}`;
-        const valueW = ctx.measureText(r.text).width;
-        text(ellipsize(ctx, r.name, inner - valueW - 30), pad, base, `600 34px ${FONT}`, C.ink);
-        text(r.text, W - pad - valueW, base, `600 34px ${MONO}`, C.accent);
-      });
-      if (hidden) {
-        text(t("share.more", { n: hidden }), pad, listLabel + 50 + shown.length * listRowH, `500 28px ${FONT}`, C.muted);
-      }
+  // verdeling per blok: hoeveel sets je per spiergroep hebt afgevinkt
+  const blocks = s.blocks || [];
+  if (blocks.length) {
+    const maxSets = Math.max(1, ...blocks.map((b) => b.sets));
+    label(t("share.perBlock"), cur);
+    cur += 46;
+    for (const b of blocks) {
+      const countText = String(b.sets);
+      const cw = measure(countText, `600 28px ${MONO}`);
+      put(fit(b.title, inner - cw - 30, `600 28px ${FONT}`), pad, cur, `600 28px ${FONT}`, C.ink);
+      put(countText, W - pad - cw, cur, `600 28px ${MONO}`, C.accent);
+      ctx.fillStyle = C.line;
+      ctx.fillRect(pad, cur + 14, inner, 12);
+      ctx.fillStyle = C.accent;
+      ctx.fillRect(pad, cur + 14, Math.max(6, inner * (b.sets / maxSets)), 12);
+      cur += 66;
     }
+    cur += 24;
+  }
+
+  // oefeningen: per oefening de zwaarste set en het aantal sets; wat niet past wordt samengevat
+  const exRowH = 76;
+  const exercises = s.top || [];
+  if (exercises.length) {
+    label(t("share.exList"), cur);
+    cur += 46;
+    const fitRows = Math.max(0, Math.floor((bottom - cur) / exRowH));
+    const hidden = exercises.length > fitRows ? exercises.length - Math.max(0, fitRows - 1) : 0;
+    const shown = hidden ? exercises.slice(0, Math.max(0, fitRows - 1)) : exercises.slice(0, fitRows);
+    for (const r of shown) {
+      const vw = measure(r.text, `600 30px ${MONO}`);
+      put(fit(r.name, inner - vw - 30, `600 30px ${FONT}`), pad, cur, `600 30px ${FONT}`, C.ink);
+      put(r.text, W - pad - vw, cur, `600 30px ${MONO}`, C.accent);
+      put(`${r.count} ${t("unit.sets")}`, pad, cur + 32, `500 24px ${FONT}`, C.muted);
+      cur += exRowH;
+    }
+    if (hidden) put(t("share.more", { n: hidden }), pad, cur, `500 26px ${FONT}`, C.muted);
   }
 
   return footer(ctx, s, W, H, pad);
@@ -171,10 +175,8 @@ export function renderShare(kind, s) {
 function footer(ctx, s, W, H, pad) {
   ctx.font = `500 26px ${FONT}`;
   ctx.fillStyle = C.muted;
-  ctx.fillText(`${s.startLabel ? t("share.started", { time: s.startLabel }) + " · " : ""}${t("share.footer")}`, pad, H - 70);
+  ctx.fillText(`${s.startLabel ? t("share.started", { time: s.startLabel }) + " · " : ""}${t("share.footer")}`, pad, H - 90);
   ctx.fillStyle = C.accent;
-  ctx.fillRect(pad, H - 46, 120, 6);
+  ctx.fillRect(pad, H - 66, 120, 6);
   return new Promise((resolve) => ctx.canvas.toBlob((b) => resolve(b), "image/png"));
 }
-
-export const SHARE_FORMATS = FORMATS;

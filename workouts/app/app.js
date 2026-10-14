@@ -1,6 +1,7 @@
 import { buildFit, buildWorkoutFit } from "./fit.js";
 import { savePlan, loadPlan, upsertSession, setStatus } from "./store.js";
-import { renderShare, SHARE_FORMATS } from "./share.js";
+import { renderShare, SHARE_FORMAT } from "./share.js";
+import { allRecords, collectSets } from "./stats.js";
 import { t, initPage, locale } from "./i18n.js";
 
 // Pas geladen bij het exporteren, zodat de sets ook renderen als de CDN niet bereikbaar is.
@@ -106,7 +107,7 @@ function completedSets() {
     .map(([id, doneAt]) => {
       const { ex, set } = setIndex[id];
       const { perHand, total, reps } = valueOf(id, set, ex);
-      return { id, exercise: ex.name, block: setIndex[id].block, category: ex.category, subtype: ex.subtype, label: set.label, perHand, weight: total, reps, dumbbell: !!ex.dumbbell, doneAt };
+      return { id, exercise: ex.name, block: setIndex[id].block, category: ex.category, subtype: ex.subtype, label: set.label, perHand, weight: total, reps, dumbbell: !!ex.dumbbell, bodyweight: !!ex.bodyweight, doneAt };
     });
 }
 
@@ -121,12 +122,14 @@ function summary() {
     const score = s.weight * 1000 + (s.reps || 0);
     if (!prev || score > prev.score) best.set(s.exercise, { score, s });
   }
+  const counts = new Map();
+  for (const s of done) counts.set(s.exercise, (counts.get(s.exercise) || 0) + 1);
   const top = [...best.values()].map(({ s }) => {
     let text = "";
     if (s.dumbbell && s.perHand) text = `2 × ${fmtNum(s.perHand)} kg${s.reps != null ? ` (${s.reps})` : ""}`;
     else if (s.weight) text = `${fmtNum(s.weight)} kg${s.reps != null ? ` (${s.reps})` : ""}`;
     else text = `${s.reps ?? "–"}`;
-    return { name: s.exercise, text };
+    return { name: s.exercise, text, count: counts.get(s.exercise) || 0 };
   });
   // aantal afgevinkte sets per blok, in de volgorde van het plan
   const blocks = W.blocks
@@ -385,14 +388,41 @@ $("finishbtn").addEventListener("click", () => {
   $("msg").textContent = t("msg.finishDone");
 });
 
+// Records van vandaag: per oefening een nieuw gewichtrecord, of bij lichaamsgewicht een nieuw reps-record.
+// Vergeleken met alle eerdere trainingen; de training zelf telt niet mee. Een eerste keer telt niet als record.
+async function todaysRecords(done) {
+  const past = (await allRecords()).filter((r) => r.id !== W.id);
+  const hist = new Map();
+  for (const s of collectSets(past)) {
+    const h = hist.get(s.key) || { w: 0, r: 0 };
+    hist.set(s.key, { w: Math.max(h.w, s.total), r: Math.max(h.r, s.reps || 0) });
+  }
+  const today = new Map();
+  for (const s of done) {
+    const key = s.subtype || s.exercise;
+    const cur = today.get(key) || { name: s.exercise, w: 0, r: 0, bodyweight: s.bodyweight };
+    cur.w = Math.max(cur.w, s.weight || 0);
+    cur.r = Math.max(cur.r, s.reps || 0);
+    today.set(key, cur);
+  }
+  const out = [];
+  for (const [key, cur] of today) {
+    const h = hist.get(key);
+    if (!h) continue;
+    if (cur.w > 0 && cur.w > h.w) out.push({ name: cur.name, text: `${fmtNum(cur.w)} kg · ${t("share.record")}` });
+    else if (cur.bodyweight && cur.r > h.r) out.push({ name: cur.name, text: `${cur.r} reps · ${t("share.record")}` });
+  }
+  return out;
+}
+
 document.querySelectorAll("[data-share]").forEach((btn) => {
   btn.addEventListener("click", async () => {
-    const kind = btn.dataset.share;
-    // Altijd een download van het PNG-bestand; het systeemdeelmenu (macOS/iOS) is hier niet gewenst.
-    const blob = await renderShare(kind, summary());
-    const name = `${W.id}-${kind}.png`;
-    download(blob, name);
-    $("msg").textContent = t("msg.shareOk", { label: SHARE_FORMATS[kind].label, w: SHARE_FORMATS[kind].w, h: SHARE_FORMATS[kind].h });
+    // Eén formaat voor alles. Altijd een download; het systeemdeelmenu (macOS/iOS) is hier niet gewenst.
+    const s = summary();
+    s.records = await todaysRecords(completedSets());
+    const blob = await renderShare(s);
+    download(blob, `${W.id}.png`);
+    $("msg").textContent = t("msg.shareOk", { label: SHARE_FORMAT.label, w: SHARE_FORMAT.w, h: SHARE_FORMAT.h });
   });
 });
 
