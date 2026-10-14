@@ -55,10 +55,10 @@ function render(rows, nTrain) {
     return;
   }
   const items = rows.map((r) => {
-    const pr = r.pr ? `${fmtKg(r.pr.total, r.dumbbell, r.pr.perHand)} × ${r.pr.reps ?? "–"}` : "–";
+    const pr = r.pr ? `${fmtKg(r.pr.total, r.dumbbell, r.pr.perHand)}${r.pr.reps != null ? ` (${r.pr.reps})` : ""}` : "–";
     const avg = r.avg != null ? fmtKg(r.avg, r.dumbbell, r.avg / (r.dumbbell ? 2 : 1)) : "–";
     const e1 = r.e1rm != null ? fmtKg(r.e1rm, false) : "–";
-    const last = r.last ? `${fmtKg(r.last.total, r.dumbbell, r.last.perHand)} × ${r.last.reps ?? "–"} ${t("hist.on")} ${dateShort(r.last.date)}` : "";
+    const last = r.last ? `${fmtKg(r.last.total, r.dumbbell, r.last.perHand)}${r.last.reps != null ? ` (${r.last.reps})` : ""} ${t("hist.on")} ${dateShort(r.last.date)}` : "";
     return `<div class="ex">
       <span class="nm">${esc(r.name)}</span>
       <div class="kv">

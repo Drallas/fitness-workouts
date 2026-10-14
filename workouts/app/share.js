@@ -20,6 +20,8 @@ const C = {
 const FONT = '"Helvetica Neue", Arial, system-ui, sans-serif';
 const MONO = 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
 
+import { t, locale } from "./i18n.js";
+
 // Woorden samenvoegen tot regels die binnen maxW passen; woorden worden nooit gebroken.
 function wrap(ctx, text, maxW) {
   const words = String(text).split(/\s+/);
@@ -92,9 +94,9 @@ export function renderShare(kind, s) {
 
   // hoofdcijfer: het volume
   const heroLabel = y + 90;
-  const volText = `${Math.round(s.volume).toLocaleString("nl-NL")} kg`;
+  const volText = `${Math.round(s.volume).toLocaleString(locale())} ${t("unit.kg")}`;
   const heroPx = fitPx(ctx, volText, inner, kind === "garmin" ? 230 : 180, "600", MONO);
-  text("VOLUME", pad, heroLabel, `600 26px ${FONT}`, C.muted);
+  text(t("share.volume"), pad, heroLabel, `600 26px ${FONT}`, C.muted);
   text(volText, pad, heroLabel + 30 + Math.round(heroPx * 0.72), `600 ${heroPx}px ${MONO}`, C.warm);
   const heroBase = heroLabel + 30 + Math.round(heroPx * 0.72);
 
@@ -102,9 +104,9 @@ export function renderShare(kind, s) {
   const statsLabel = heroBase + 90;
   const colW = inner / 3;
   const stats = [
-    ["Sets", String(s.sets)],
-    ["Duur", `${Math.round(s.minutes)} min`],
-    ["Oefeningen", String(s.top.length)],
+    [t("share.sets"), String(s.sets)],
+    [t("share.duration"), `${Math.round(s.minutes)} ${t("unit.min")}`],
+    [t("share.exercises"), String(s.top.length)],
   ];
   stats.forEach(([label, value], i) => {
     const x = pad + i * colW;
@@ -125,7 +127,7 @@ export function renderShare(kind, s) {
   // Alleen op Instagram (hoger formaat); op het vierkante Strava-plaatje krijgt de lijst de ruimte.
   const shownBlocks = kind === "instagram" ? blocks.slice(0, barFit) : [];
   if (shownBlocks.length) {
-    text("PER BLOK", pad, barsLabel, `600 24px ${FONT}`, C.muted);
+    text(t("share.perBlock"), pad, barsLabel, `600 24px ${FONT}`, C.muted);
     shownBlocks.forEach((b, i) => {
       const base = barsLabel + 50 + i * barRowH;
       ctx.font = `600 30px ${FONT}`;
@@ -149,7 +151,7 @@ export function renderShare(kind, s) {
     if (fit > 0) {
       const hidden = s.top.length > fit ? s.top.length - (fit - 1) : 0;
       const shown = hidden ? s.top.slice(0, fit - 1) : s.top.slice(0, fit);
-      text("ZWAARSTE SET PER OEFENING", pad, listLabel, `600 24px ${FONT}`, C.muted);
+      text(t("share.heaviest"), pad, listLabel, `600 24px ${FONT}`, C.muted);
       shown.forEach((r, i) => {
         const base = listLabel + 50 + i * listRowH;
         ctx.font = `600 34px ${MONO}`;
@@ -158,7 +160,7 @@ export function renderShare(kind, s) {
         text(r.text, W - pad - valueW, base, `600 34px ${MONO}`, C.accent);
       });
       if (hidden) {
-        text(`+ ${hidden} meer`, pad, listLabel + 50 + shown.length * listRowH, `500 28px ${FONT}`, C.muted);
+        text(t("share.more", { n: hidden }), pad, listLabel + 50 + shown.length * listRowH, `500 28px ${FONT}`, C.muted);
       }
     }
   }
@@ -169,7 +171,7 @@ export function renderShare(kind, s) {
 function footer(ctx, s, W, H, pad) {
   ctx.font = `500 26px ${FONT}`;
   ctx.fillStyle = C.muted;
-  ctx.fillText(`${s.startLabel ? "Gestart " + s.startLabel + " · " : ""}Afgevinkt met de trainingsapp`, pad, H - 70);
+  ctx.fillText(`${s.startLabel ? t("share.started", { time: s.startLabel }) + " · " : ""}${t("share.footer")}`, pad, H - 70);
   ctx.fillStyle = C.accent;
   ctx.fillRect(pad, H - 46, 120, 6);
   return new Promise((resolve) => ctx.canvas.toBlob((b) => resolve(b), "image/png"));

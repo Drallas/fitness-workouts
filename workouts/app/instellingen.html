@@ -41,6 +41,20 @@
     </div>
   </section>
 
+  <section class="card" id="ghcard">
+    <h2 data-i18n="set.github">GitHub</h2>
+    <p class="note" data-i18n="set.ghText">Finished trainings go to the repo from here.</p>
+    <div class="row">
+      <input id="ghtoken" type="password" autocomplete="off" spellcheck="false" aria-label="Token" data-i18n-attr="placeholder:set.ghTokenLabel" placeholder="Token">
+      <button class="btn" id="ghsave" type="button" data-i18n="set.ghSave">Save</button>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="ghsync" type="button" data-i18n="set.ghSync">Sync finished trainings to GitHub</button>
+      <button class="btn" id="ghclear" type="button" data-i18n="set.ghClear">Remove token</button>
+    </div>
+    <p class="note" id="ghstatus" role="status"></p>
+  </section>
+
   <section class="card">
     <h2 data-i18n="set.weights">Start weights</h2>
     <p class="note" data-i18n="set.weightsText">The weights the app uses as start weight for a new workout, overwritten by what you entered yourself. Clearing resets them to the Strava values. Your history itself stays on the History page.</p>
@@ -71,6 +85,7 @@
 <script type="module">
 import { renderNav } from "./nav.js";
 import { listSessions, listTrash, trashSession, restoreTrash, purgeTrash, emptyTrash } from "./store.js";
+import { getToken, setToken, pendingRecords, syncToGithub } from "./github.js";
 import { initPage, t, locale } from "./i18n.js";
 
 initPage();
@@ -177,6 +192,42 @@ document.addEventListener("click", (e) => {
   if (b.id === "emptytrash") { pendingEmpty = true; renderTrash(); return; }
   if (b.id === "emptytrashno") { pendingEmpty = false; renderTrash(); return; }
   if (b.id === "emptytrashok") { emptyTrash(); pendingEmpty = false; $("msg").textContent = t("trash.emptied"); renderTrash(); }
+});
+
+// GitHub: token opslaan, en afgeronde trainingen naar workouts/done/ zetten.
+function ghStatus(text) { $("ghstatus").textContent = text; }
+function syncFail(err) {
+  const code = /^\d+$/.test(err.message) ? err.message : "netwerk";
+  ghStatus(t("set.ghErr", { code }));
+}
+$("ghtoken").placeholder = getToken() ? "••••••••" : t("set.ghTokenLabel");
+$("ghsave").addEventListener("click", () => {
+  const v = $("ghtoken").value.trim();
+  if (!v) { ghStatus(t("set.ghNoToken")); return; }
+  setToken(v);
+  $("ghtoken").value = "";
+  $("ghtoken").placeholder = "••••••••";
+  ghStatus(t("set.ghSaved"));
+});
+$("ghclear").addEventListener("click", () => {
+  setToken("");
+  $("ghtoken").placeholder = t("set.ghTokenLabel");
+  ghStatus(t("set.ghCleared"));
+});
+$("ghsync").addEventListener("click", async () => {
+  if (!getToken()) { ghStatus(t("set.ghNoToken")); return; }
+  $("ghsync").disabled = true;
+  ghStatus(t("set.ghSyncing"));
+  try {
+    const todo = await pendingRecords();
+    if (!todo.length) { ghStatus(t("set.nothingToExport")); return; }
+    const n = await syncToGithub(todo);
+    ghStatus(t("set.ghSynced", { n }));
+  } catch (err) {
+    syncFail(err);
+  } finally {
+    $("ghsync").disabled = false;
+  }
 });
 
 bind();

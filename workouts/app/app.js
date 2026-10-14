@@ -35,14 +35,21 @@ function cachePic(term, url) {
     localStorage.setItem(PIC_KEY, JSON.stringify(c));
   } catch (e) {}
 }
-async function findPic(term) {
-  const hit = cachedPic(term);
-  if (hit !== undefined) return hit;
-  const r = await fetch("https://wger.de/api/v2/exercise/search/?term=" + encodeURIComponent(term));
-  const j = await r.json();
-  const url = j.suggestions?.[0]?.data?.image_thumbnail || "";
-  cachePic(term, url); // ook "geen foto" wordt onthouden, zodat we niet elke keer opnieuw zoeken
-  return url;
+// Probeert de zoektermen na elkaar. Gooit een fout als wger.de niet bereikbaar is; geeft "" als er geen foto is.
+async function findPic(terms) {
+  for (const term of terms) {
+    const hit = cachedPic(term);
+    if (hit) return hit;
+    if (hit === "") continue; // eerder gezocht, geen foto
+    const r = await fetch("https://wger.de/api/v2/exercise/search/?term=" + encodeURIComponent(term));
+    if (!r.ok) throw new Error(String(r.status));
+    const j = await r.json();
+    // Niet alleen de eerste treffer: die heeft soms geen foto, een latere wel.
+    const url = (j.suggestions || []).map((s) => s.data?.image_thumbnail).find(Boolean) || "";
+    cachePic(term, url);
+    if (url) return url;
+  }
+  return "";
 }
 
 function openInfo(ex) {
@@ -57,8 +64,9 @@ function openInfo(ex) {
   d.showModal();
   const slot = d.querySelector(".infopic-slot");
   slot.innerHTML = `<p class="note">${t("pic.loading")}</p>`;
-  const term = ex.wger || libTerm(ex.subtype) || ex.name;
-  findPic(term).then((url) => {
+  // Zoektermen: de wger-term, dan de naam zonder haakjes (bv. "Lat pulldown (breed)" → "Lat pulldown").
+  const terms = [...new Set([ex.wger, libTerm(ex.subtype), ex.name.replace(/\s*\(.*?\)\s*/g, " ").trim(), ex.name].filter(Boolean))];
+  findPic(terms).then((url) => {
     if (!url) { slot.innerHTML = `<p class="note">${t("pic.none")}</p>`; return; }
     slot.innerHTML = `<img class="infopic" src="${esc(url)}" alt="${esc(ex.name)}" loading="lazy" onerror="this.parentNode.innerHTML='<p class=&quot;note&quot;>${esc(t("pic.none"))}</p>'"><a class="note" href="https://wger.de" target="_blank" rel="noopener">wger.de</a>`;
   }).catch(() => { slot.innerHTML = `<p class="note">${t("pic.error")}</p>`; });
@@ -148,8 +156,8 @@ function summary() {
   }
   const top = [...best.values()].map(({ s }) => {
     let text = "";
-    if (s.dumbbell && s.perHand) text = `2 × ${fmtNum(s.perHand)} kg × ${s.reps ?? "–"}`;
-    else if (s.weight) text = `${fmtNum(s.weight)} kg × ${s.reps ?? "–"}`;
+    if (s.dumbbell && s.perHand) text = `2 × ${fmtNum(s.perHand)} kg${s.reps != null ? ` (${s.reps})` : ""}`;
+    else if (s.weight) text = `${fmtNum(s.weight)} kg${s.reps != null ? ` (${s.reps})` : ""}`;
     else text = `${s.reps ?? "–"}`;
     return { name: s.exercise, text };
   });
@@ -401,10 +409,9 @@ $("fitbtn").addEventListener("click", async () => {
 // Dat bestand zet Claude in de repo (workouts/done/), waarna de training op GitHub staat.
 $("finishbtn").addEventListener("click", () => {
   if (!state.startMs) { $("msg").textContent = t("msg.startFirst"); return; }
-  const rec = { versie: 1, plan: W, state, afgerond: new Date().toISOString() };
-  download(new Blob([JSON.stringify(rec, null, 2)], { type: "application/json" }), `${W.id}.json`);
+  // Afronden zet alleen de status. Het klaarzetten voor GitHub gebeurt in Instellingen.
   setStatus(W.id, "klaar");
-  $("msg").textContent = t("msg.finishOk");
+  $("msg").textContent = t("msg.finishDone");
 });
 
 document.querySelectorAll("[data-share]").forEach((btn) => {
