@@ -11,7 +11,7 @@
 <style>
 :root {
   --bg: #edf0f3; --surface: #ffffff; --ink: #16212b; --muted: #5b6b79; --line: #d3dae1;
-  --accent: #0e6f68; --accent-ink: #ffffff; --warm: #b4540a;
+  --accent: #0e6f68; --accent-ink: #ffffff; --warm: #b4540a; --soft: #e3ecee;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
   color-scheme: light;
@@ -19,37 +19,52 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6; --line: #2a3844;
-    --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; color-scheme: dark;
+    --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f171e; --surface: #17222b; --ink: #e7edf2; --muted: #9aa9b6; --line: #2a3844;
-  --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; color-scheme: dark;
+  --accent: #4cc2b6; --accent-ink: #06211e; --warm: #f0a35e; --soft: #1d2d33; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 18px; line-height: 1.5;
-  padding: 16px 16px 60px; overflow-wrap: normal; word-break: normal;
+  padding: 0 16px 60px; overflow-wrap: normal; word-break: normal;
 }
-.wrap { width: 100%; max-width: 680px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.top {
+  position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line);
+  margin: 0 -16px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+}
+.top .brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-right: auto; color: var(--ink); }
+.top a.nv { font-weight: 600; color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 8px; }
+.top a.nv[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.top a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap { width: 100%; max-width: 680px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; padding-top: 16px; }
 h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; letter-spacing: 0.01em; }
 h1 { font-size: 46px; line-height: 1.05; }
 h2 { font-size: 30px; line-height: 1.1; }
 .eyebrow { font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
 .note { margin: 0; color: var(--muted); font-size: 16px; }
-.back { font-size: 16px; color: var(--accent); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .btn { font: inherit; font-weight: 600; font-size: 18px; min-height: 48px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; cursor: pointer; align-self: flex-start; }
 .btn.danger { color: var(--warm); border-color: var(--warm); }
-.btn:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.sure { background: var(--warm); color: #fff; border-color: var(--warm); }
+.warn { font-size: 17px; background: var(--soft); border-radius: 8px; padding: 12px 14px; margin: 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
 #msg { margin: 0; font-size: 17px; min-height: 1em; }
 </style>
 </head>
 <body>
+<nav class="top" aria-label="Hoofdmenu">
+  <span class="brand">Trainingen</span>
+  <a class="nv" href="./">Start</a>
+  <a class="nv" href="instellingen.html" aria-current="page">Instellingen</a>
+</nav>
+
 <div class="wrap">
-  <a class="back" href="./">← Trainingen</a>
   <header style="display:flex;flex-direction:column;gap:8px">
     <div class="eyebrow">Fitness</div>
     <h1>Instellingen</h1>
@@ -58,19 +73,23 @@ h2 { font-size: 30px; line-height: 1.1; }
   <section class="card">
     <h2>Trainingen</h2>
     <p class="note" id="count"></p>
-    <p class="note">Een training verwijder je op de startpagina, bij de training zelf. Die waarschuwt je eerst.</p>
+    <p class="note">Een training verwijder je op de startpagina, bij de training zelf. Daar wordt je eerst gevraagd om te bevestigen.</p>
   </section>
 
   <section class="card">
     <h2>Gewichtsgeschiedenis</h2>
     <p class="note">De gewichten die de app onthoudt als startgewicht voor een nieuwe workout. Wissen zet ze terug naar de Strava-waarden.</p>
-    <button class="btn" id="wishist" type="button">Wis gewichtsgeschiedenis</button>
+    <div id="histbox">
+      <button class="btn" id="wishist" type="button">Wis gewichtsgeschiedenis</button>
+    </div>
   </section>
 
   <section class="card" style="border-color:var(--warm)">
     <h2>Gevaarzone</h2>
-    <p class="note">Wist alle trainingen op dit apparaat, inclusief plan en voortgang. Trainingen die je al naar GitHub hebt gestuurd of gedownload, blijven bestaan.</p>
-    <button class="btn danger" id="wisall" type="button">Wis alle trainingen</button>
+    <p class="note">Wist alle trainingen op dit apparaat, inclusief plan en voortgang. Een bestand dat je al hebt gedownload, blijft staan.</p>
+    <div id="allbox">
+      <button class="btn danger" id="wisall" type="button">Wis alle trainingen</button>
+    </div>
   </section>
 
   <p class="note" id="msg" role="status"></p>
@@ -87,21 +106,44 @@ function refresh() {
   $("wisall").disabled = !n;
 }
 
-$("wisall").addEventListener("click", () => {
-  const n = listSessions().length;
-  if (!n) return;
-  if (!confirm(`Alle ${n} trainingen wissen?\n\nHet plan en de voortgang van elke training op dit apparaat gaan weg. Dit kan niet ongedaan worden gemaakt.`)) return;
-  for (const s of listSessions()) removeSession(s.id);
-  $("msg").textContent = "Alle trainingen zijn gewist.";
+// Bevestiging op de pagina zelf, niet met een systeemvenster (die worden niet overal getoond).
+function askInline(boxId, text, okLabel, onOk) {
+  const box = $(boxId);
+  box.innerHTML = `
+    <p class="warn">${text}</p>
+    <div class="row">
+      <button class="btn sure" type="button" id="${boxId}-ok">${okLabel}</button>
+      <button class="btn" type="button" id="${boxId}-no">Annuleer</button>
+    </div>`;
+  $(`${boxId}-no`).addEventListener("click", reset);
+  $(`${boxId}-ok`).addEventListener("click", () => { onOk(); reset(); });
+}
+
+function reset() {
+  $("histbox").innerHTML = `<button class="btn" id="wishist" type="button">Wis gewichtsgeschiedenis</button>`;
+  $("allbox").innerHTML = `<button class="btn danger" id="wisall" type="button">Wis alle trainingen</button>`;
+  bind();
   refresh();
-});
+}
 
-$("wishist").addEventListener("click", () => {
-  if (!confirm("Gewichtsgeschiedenis wissen?\n\nDe gewichten die je zelf hebt ingevuld, gaan weg. De startgewichten van Strava blijven.")) return;
-  try { localStorage.removeItem("fw-hist"); } catch (e) {}
-  $("msg").textContent = "Gewichtsgeschiedenis is gewist.";
-});
+function bind() {
+  $("wishist").addEventListener("click", () => {
+    askInline("histbox", "Gewichtsgeschiedenis wissen? De gewichten die je zelf hebt ingevuld, gaan weg. De startgewichten van Strava blijven.", "Ja, wis", () => {
+      try { localStorage.removeItem("fw-hist"); } catch (e) {}
+      $("msg").textContent = "Gewichtsgeschiedenis is gewist.";
+    });
+  });
+  $("wisall").addEventListener("click", () => {
+    const n = listSessions().length;
+    if (!n) return;
+    askInline("allbox", `Alle ${n} trainingen wissen? Het plan en de voortgang van elke training op dit apparaat gaan weg. Dit kan niet ongedaan worden gemaakt.`, "Ja, wis alles", () => {
+      for (const s of listSessions()) removeSession(s.id);
+      $("msg").textContent = "Alle trainingen zijn gewist.";
+    });
+  });
+}
 
+bind();
 refresh();
 </script>
 </body>

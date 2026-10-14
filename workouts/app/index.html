@@ -33,9 +33,19 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 18px; line-height: 1.5;
-  padding: 16px 16px 60px; overflow-wrap: normal; word-break: normal;
+  padding: 0 16px 60px; overflow-wrap: normal; word-break: normal;
 }
-.wrap { width: 100%; max-width: 680px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+/* Menubalk bovenin, op elke pagina dezelfde */
+.top {
+  position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line);
+  margin: 0 -16px; padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+}
+.top .brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-right: auto; color: var(--ink); text-decoration: none; }
+.top a.nv { font-weight: 600; color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 8px; }
+.top a.nv[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.top a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap { width: 100%; max-width: 680px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; padding-top: 16px; }
 h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
 h1 { font-size: 46px; line-height: 1.05; }
 h2 { font-size: 30px; line-height: 1.1; }
@@ -66,6 +76,7 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center; text-align: center;
 }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.danger { background: var(--warm); color: #fff; border-color: var(--warm); }
 .err { margin: 0; color: var(--warm); font-weight: 600; min-height: 1em; }
 .result h2 { font-size: 36px; }
 .est { font-family: var(--font-num); font-size: 18px; color: var(--accent); margin: 0; }
@@ -78,7 +89,6 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
 .notes { background: var(--soft); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .notes p { margin: 0; font-size: 17px; }
 .actions { display: flex; flex-direction: column; gap: 12px; }
-.alt { text-align: center; font-size: 17px; }
 .slist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .slist li { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
 .slist li:last-child { border-bottom: 0; padding-bottom: 0; }
@@ -86,11 +96,16 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
 .slist .st.klaar { color: var(--accent); }
 .slist .acts { display: flex; gap: 10px; flex-wrap: wrap; }
 .slist .acts a, .slist .acts button { min-height: 44px; font-size: 17px; padding: 8px 14px; }
-.slist .del.armed { color: var(--warm); border-color: var(--warm); }
-.alt a { color: var(--accent); font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
+.slist .warn { font-size: 17px; color: var(--ink); background: var(--soft); border-radius: 8px; padding: 12px 14px; }
 </style>
 </head>
 <body>
+<nav class="top" aria-label="Hoofdmenu">
+  <span class="brand">Trainingen</span>
+  <a class="nv" href="./" aria-current="page">Start</a>
+  <a class="nv" href="instellingen.html">Instellingen</a>
+</nav>
+
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:8px">
     <div class="eyebrow">Fitness</div>
@@ -147,23 +162,47 @@ input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid 
     </div>
   </section>
 
-  <section class="card" id="sessions" hidden>
+  <section class="card" id="sessions">
     <h2>Trainingen</h2>
     <p class="note">Gestarte trainingen blijven hier staan tot je ze verwijdert. Open er één om verder te gaan of om de downloads te pakken.</p>
     <ul class="slist" id="slist"></ul>
   </section>
-
-  <p class="alt"><a href="train.html?w=push">Voorbeeld: pushdag van 13-10</a> · <a href="instellingen.html">Instellingen</a></p>
 </div>
 
 <script type="module">
 import { generate } from "./generate.js";
 import { listSessions, removeSession, loadPlan, loadState, savePlan } from "./store.js";
 
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const fmtNum = (n) => String(n).replace(".", ",");
+// Laatste benen-zware sessie: de intervallen van 12-10 om 10:19. Gebruikt voor de 48-uur-regel.
+const LAST_LEGS = "2026-10-12T10:19:00";
+
+let lib = null;
+let hist = {};
+// Welke training wacht op bevestiging van verwijderen (alleen op deze pagina).
+let pendingDel = null;
+
 function renderSessions() {
   const list = listSessions();
-  $("sessions").hidden = !list.length;
-  $("slist").innerHTML = list.map((s) => {
+  const voorbeeld = `
+    <li>
+      <span><strong>Pushtraining 13-10 (voorbeeld)</strong></span>
+      <span class="st">Vaste voorbeeldtraining, wordt niet opgeslagen</span>
+      <span class="acts"><a class="btn primary" href="train.html?w=push">Open</a></span>
+    </li>`;
+  $("slist").innerHTML = voorbeeld + list.map((s) => {
+    if (pendingDel === s.id) {
+      return `
+    <li>
+      <span class="warn">Training "${esc(s.title)}" verwijderen? Het plan en je voortgang op dit apparaat gaan weg. Dit kan niet ongedaan worden gemaakt. Een bestand dat je al hebt gedownload, blijft staan.</span>
+      <span class="acts">
+        <button class="btn danger" type="button" data-delok="${esc(s.id)}">Ja, verwijder</button>
+        <button class="btn" type="button" data-delno="1">Annuleer</button>
+      </span>
+    </li>`;
+    }
     const plan = loadPlan(s.id);
     const st = loadState(s.id);
     const total = plan ? plan.blocks.reduce((n, b) => n + b.exercises.reduce((m, e) => m + e.sets.length, 0), 0) : 0;
@@ -177,17 +216,18 @@ function renderSessions() {
       <span class="acts">
         <a class="btn primary" href="train.html?id=${encodeURIComponent(s.id)}">Open</a>
         ${klaar ? `<button class="btn" type="button" data-again="${esc(s.id)}">Doe opnieuw</button>` : ""}
-        <button class="btn del" type="button" data-del="${esc(s.id)}">Verwijder</button>
+        <button class="btn" type="button" data-del="${esc(s.id)}">Verwijder</button>
       </span>
     </li>`;
   }).join("");
 }
 
-document.getElementById("slist").addEventListener("click", (e) => {
-  const again = e.target.closest("[data-again]");
-  if (again) {
+$("slist").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-again],[data-del],[data-delok],[data-delno]");
+  if (!t) return;
+  if (t.dataset.again) {
     // Kopie van het plan met een nieuw id en lege voortgang; de afgeronde training blijft staan.
-    const plan = loadPlan(again.dataset.again);
+    const plan = loadPlan(t.dataset.again);
     if (!plan) return;
     const now = new Date();
     const newId = `${plan.id}-r${now.getTime().toString(36)}`;
@@ -196,23 +236,14 @@ document.getElementById("slist").addEventListener("click", (e) => {
     location.href = `train.html?id=${encodeURIComponent(newId)}`;
     return;
   }
-  const b = e.target.closest("[data-del]");
-  if (!b) return;
-  const s = listSessions().find((x) => x.id === b.dataset.del);
-  const naam = s ? s.title : "deze training";
-  if (!confirm(`Training "${naam}" verwijderen?\n\nHet plan en je voortgang op dit apparaat gaan weg. Dit kan niet ongedaan worden gemaakt. Een bestand dat je al hebt gedownload blijft staan.`)) return;
-  removeSession(b.dataset.del);
-  renderSessions();
+  if (t.dataset.del) { pendingDel = t.dataset.del; renderSessions(); return; }
+  if (t.dataset.delno) { pendingDel = null; renderSessions(); return; }
+  if (t.dataset.delok) {
+    removeSession(t.dataset.delok);
+    pendingDel = null;
+    renderSessions();
+  }
 });
-
-const $ = (id) => document.getElementById(id);
-const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const fmtNum = (n) => String(n).replace(".", ",");
-// Laatste benen-zware sessie: de intervallen van 12-10 om 10:19. Gebruikt voor de 48-uur-regel.
-const LAST_LEGS = "2026-10-12T10:19:00";
-
-let lib = null;
-let hist = {};
 
 async function load() {
   lib = await (await fetch(new URL("./data/library.json", import.meta.url))).json();

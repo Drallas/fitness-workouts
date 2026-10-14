@@ -114,7 +114,12 @@ function render() {
     html += `<section><div class="sechead">${b.tag ? `<span class="tag">${esc(b.tag)}</span>` : ""}<h2>${esc(b.title)}</h2></div>`;
     for (const ex of b.exercises) {
       const nameHtml = ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener">${esc(ex.name)}</a>` : esc(ex.name);
-      html += `<div class="ex"><div class="exname">${nameHtml}</div>
+      // Plaatje van de oefening; zonder plaatje een vak met een YouTube-zoeklink.
+      const link = ex.demo || "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " techniek");
+      const thumb = ex.img
+        ? `<a class="thumb" href="${esc(link)}" target="_blank" rel="noopener"><img src="${esc(ex.img)}" alt="${esc(ex.name)}" loading="lazy"><span class="ov">Uitleg ↗</span></a>`
+        : `<a class="thumb ph" href="${esc(link)}" target="_blank" rel="noopener"><span class="ov">▶ Zoek op YouTube</span></a>`;
+      html += `<div class="ex"><div class="exhead">${thumb}<div class="exname">${nameHtml}</div></div>
         <div class="facts"><span>${ex.sets.length} sets</span><span>${ex.category}${ex.subtype ? " · " + esc(ex.subtype) : ""}</span>${ex.dumbbell ? "<span>per dumbbell</span>" : ""}${ex.rest ? `<span class="rest">rust ${fmtSec(ex.rest)}</span>` : ""}${ex.demo ? `<a href="${esc(ex.demo)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;font-family:var(--font-body)">uitleg bekijken ↗</a>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
@@ -137,6 +142,12 @@ function render() {
     html += `</section>`;
   }
   $("sections").innerHTML = html;
+  // Lukt een plaatje niet, dan toont het vak de YouTube-zoeklink.
+  document.querySelectorAll(".thumb img").forEach((img) => img.addEventListener("error", () => {
+    const a = img.parentNode;
+    a.classList.add("ph");
+    a.innerHTML = '<span class="ov">▶ Zoek op YouTube</span>';
+  }));
   $("total").dataset.total = total;
   updateProgress();
 }
