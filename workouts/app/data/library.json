@@ -13,7 +13,8 @@
       "img": [
         "img/ex/lat-pulldown-0.jpg",
         "img/ex/lat-pulldown-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/wide-grip-pulldown"
     },
     {
       "id": "cable-row",
@@ -28,7 +29,8 @@
       "img": [
         "img/ex/cable-row-0.jpg",
         "img/ex/cable-row-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/seated-cable-row"
     },
     {
       "id": "db-row",
@@ -43,7 +45,8 @@
       "img": [
         "img/ex/db-row-0.jpg",
         "img/ex/db-row-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/dumbbell-bent-over-row-single-arm"
     },
     {
       "id": "face-pull",
@@ -73,7 +76,8 @@
       "img": [
         "img/ex/barbell-curl-0.jpg",
         "img/ex/barbell-curl-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/barbell-curl"
     },
     {
       "id": "db-curl",
@@ -88,7 +92,8 @@
       "img": [
         "img/ex/db-curl-0.jpg",
         "img/ex/db-curl-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/alternating-dumbbell-curl"
     },
     {
       "id": "cable-curl",
@@ -103,7 +108,8 @@
       "img": [
         "img/ex/cable-curl-0.jpg",
         "img/ex/cable-curl-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/standing-high-pulley-cable-curl"
     },
     {
       "id": "back-squat",
@@ -118,7 +124,8 @@
       "img": [
         "img/ex/back-squat-0.jpg",
         "img/ex/back-squat-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/squat"
     },
     {
       "id": "leg-press",
@@ -133,7 +140,8 @@
       "img": [
         "img/ex/leg-press-0.jpg",
         "img/ex/leg-press-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/leg-press"
     },
     {
       "id": "rdl",
@@ -148,7 +156,8 @@
       "img": [
         "img/ex/rdl-0.jpg",
         "img/ex/rdl-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/barbell-stiff-leg-deadlift"
     },
     {
       "id": "leg-curl",
@@ -163,7 +172,8 @@
       "img": [
         "img/ex/leg-curl-0.jpg",
         "img/ex/leg-curl-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/lying-leg-curl"
     },
     {
       "id": "bench-press",
@@ -178,7 +188,8 @@
       "img": [
         "img/ex/bench-press-0.jpg",
         "img/ex/bench-press-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/barbell-bench-press"
     },
     {
       "id": "incline-db",
@@ -193,7 +204,8 @@
       "img": [
         "img/ex/incline-db-0.jpg",
         "img/ex/incline-db-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/incline-dumbbell-bench-press"
     },
     {
       "id": "shoulder-press",
@@ -208,7 +220,8 @@
       "img": [
         "img/ex/shoulder-press-0.jpg",
         "img/ex/shoulder-press-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/dumbbell-shoulder-press"
     },
     {
       "id": "lateral-raise",
@@ -223,7 +236,8 @@
       "img": [
         "img/ex/lateral-raise-0.jpg",
         "img/ex/lateral-raise-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/dumbbell-lateral-raise"
     },
     {
       "id": "dips",
@@ -238,7 +252,8 @@
       "img": [
         "img/ex/dips-0.jpg",
         "img/ex/dips-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/parallel-dip-bar"
     },
     {
       "id": "pressdown",
@@ -253,7 +268,8 @@
       "img": [
         "img/ex/pressdown-0.jpg",
         "img/ex/pressdown-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/triceps-pressdown"
     },
     {
       "id": "hanging-knee",
@@ -268,7 +284,8 @@
       "img": [
         "img/ex/hanging-knee-0.jpg",
         "img/ex/hanging-knee-1.jpg"
-      ]
+      ],
+      "link": "https://www.simplyfitness.com/pages/hanging-leg-raise"
     }
   ],
   "groups": [

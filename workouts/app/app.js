@@ -35,18 +35,19 @@ function openInfo(ex) {
   d.showModal();
   const slot = d.querySelector(".infopic-slot");
   // Foto's staan in de app (img/ex/), gekoppeld aan de bibliotheek via het subtype.
-  const imgs = localPics(ex);
-  slot.innerHTML = imgs.length
+  const info = localEx(ex);
+  const imgs = info.img || [];
+  slot.innerHTML = (imgs.length
     ? imgs.map((src) => `<img class="infopic" src="${esc(src)}" alt="${esc(ex.name)}" loading="lazy">`).join("") + `<p class="note">${t("pic.credit")}</p>`
-    : `<p class="note">${t("pic.none")}</p>`;
+    : `<p class="note">${t("pic.none")}</p>`)
+    + (info.link ? `<a class="ytlink" href="${esc(info.link)}" target="_blank" rel="noopener">${t("pic.src")} ↗</a>` : "");
 }
 
 // Bibliotheek met foto's (data/library.json); laadt vanzelf bij het starten van de pagina.
 let LIB = null;
 // Foto's uit de bibliotheek (veld img), gekoppeld op subtype of id.
-function localPics(ex) {
-  const hit = (LIB || []).find((x) => (ex.subtype && x.subtype === ex.subtype) || x.id === ex.id);
-  return hit?.img || [];
+function localEx(ex) {
+  return (LIB || []).find((x) => (ex.subtype && x.subtype === ex.subtype) || x.id === ex.id) || {};
 }
 fetch(new URL("./data/library.json", import.meta.url)).then((r) => r.json()).then((j) => { LIB = j.exercises || []; }).catch(() => {});
 document.addEventListener("click", (e) => {
