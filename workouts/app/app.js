@@ -156,7 +156,7 @@ function render() {
       exById[ex.id] = ex;
       // Eén subtiele link "uitleg ↗" opent een overlay met plaatje en YouTube-link. Geen grote knop op de pagina.
       html += `<div class="ex"><div class="exname">${esc(ex.name)}</div>
-        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${ex.bodyweight ? `<span>${t("train.bw")}</span>` : ""}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button>${removable(b, ex) ? `<button class="infolink" type="button" data-delex="${esc(ex.id)}">${pendingDel === "ex:" + ex.id ? t("add.sure") : t("add.delEx")}</button>` : ""}</div>
+        <div class="facts"><span>${ex.sets.length} ${t(ex.sets.length === 1 ? "unit.set" : "unit.sets")}</span>${ex.dumbbell ? `<span>${t("unit.perDumbbell")}</span>` : ""}${removable(b, ex) ? `<button class="infolink" type="button" data-bw="${esc(ex.id)}" aria-pressed="${!!ex.bodyweight}">${ex.bodyweight ? "✓ " : ""}${t("train.bw")}</button>` : (ex.bodyweight ? `<span>${t("train.bw")}</span>` : "")}${ex.rest ? `<span class="rest">${t("train.rest", { time: fmtSec(ex.rest) })}</span>` : ""}<button class="infolink" type="button" data-info="${esc(ex.id)}">${t("train.guide")}</button>${removable(b, ex) ? `<button class="infolink" type="button" data-delex="${esc(ex.id)}">${pendingDel === "ex:" + ex.id ? t("add.sure") : t("add.delEx")}</button>` : ""}</div>
         <div class="sets">`;
       ex.sets.forEach((set, i) => {
         const id = `${ex.id}-${i}`;
@@ -170,7 +170,7 @@ function render() {
           <input type="checkbox" id="c-${id}" aria-label="${esc(ex.name + " " + set.label)} afvinken" ${isDone ? "checked" : ""}>
           <label class="lbl" for="c-${id}">${esc(set.label)}</label>
           <div class="fld r"><input type="text" inputmode="numeric" id="r-${id}" aria-label="Herhalingen" value="${esc(r)}"><span class="unit">reps</span></div>
-          <div class="fld w">${ex.dumbbell ? '<span class="pre">2 ×</span>' : ""}<input type="text" inputmode="decimal" id="w-${id}" aria-label="${ex.dumbbell ? "Gewicht per dumbbell in kg" : "Gewicht in kg"}" value="${esc(w)}"><span class="unit">kg</span></div>
+          <div class="fld w"${ex.bodyweight ? ' style="display:none"' : ""}>${ex.dumbbell ? '<span class="pre">2 ×</span>' : ""}<input type="text" inputmode="decimal" id="w-${id}" aria-label="${ex.dumbbell ? "Gewicht per dumbbell in kg" : "Gewicht in kg"}" value="${esc(w)}"><span class="unit">kg</span></div>
           ${removable(b, ex) ? `<button class="setdel" type="button" data-delset="${esc(ex.id)}" data-idx="${i}" aria-label="${esc(t("add.delSet"))}">${pendingDel === `set:${ex.id}:${i}` ? t("add.sure") : "✕"}</button>` : ""}
         </div>`;
       });
@@ -500,6 +500,7 @@ function removeSet(exId, idx) {
   ex.sets.splice(idx, 1);
   // De sets erna schuiven een plek op, zodat afvinkingen en gewichten bij de juiste set blijven.
   for (let j = idx; j < ex.sets.length; j++) moveKey(`${ex.id}-${j + 1}`, `${ex.id}-${j}`);
+  if (!ex.sets.length) { removeExercise(exId); return; }
   finishEdit();
 }
 function removeExercise(exId) {
@@ -517,6 +518,19 @@ function pressDelete(key, action) {
   else { pendingDel = key; render(); }
 }
 $("sections").addEventListener("click", (e) => {
+  const bw = e.target.closest("[data-bw]");
+  if (bw) {
+    const found = findEx(bw.dataset.bw);
+    if (!found) return;
+    const { ex } = found;
+    ex.bodyweight = !ex.bodyweight;
+    if (ex.bodyweight) {
+      // Lichaamsgewicht: geen kg per set meer; eerder ingevulde kg wissen.
+      ex.sets.forEach((set, i) => { set.weight = null; if (state.vals[`${ex.id}-${i}`]) delete state.vals[`${ex.id}-${i}`].w; });
+    }
+    finishEdit();
+    return;
+  }
   const b = e.target.closest("[data-delex],[data-delset]");
   if (!b) return;
   if (b.dataset.delex) pressDelete(`ex:${b.dataset.delex}`, () => removeExercise(b.dataset.delex));
