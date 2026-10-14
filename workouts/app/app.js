@@ -384,15 +384,9 @@ $("finishbtn").addEventListener("click", () => {
 document.querySelectorAll("[data-share]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     const kind = btn.dataset.share;
+    // Altijd een download van het PNG-bestand; het systeemdeelmenu (macOS/iOS) is hier niet gewenst.
     const blob = await renderShare(kind, summary());
     const name = `${W.id}-${kind}.png`;
-    const file = new File([blob], name, { type: "image/png" });
-    try {
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: W.title });
-        return;
-      }
-    } catch (e) { /* gedeeld of geannuleerd: dan niet downloaden */ return; }
     download(blob, name);
     $("msg").textContent = t("msg.shareOk", { label: SHARE_FORMATS[kind].label, w: SHARE_FORMATS[kind].w, h: SHARE_FORMATS[kind].h });
   });
