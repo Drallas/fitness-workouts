@@ -54,11 +54,18 @@ async function getFile(path) {
   return { sha: j.sha, text: b64decode(j.content) };
 }
 
+// Fout met de statuscode als bericht, en de tekst van GitHub zelf als detail, zodat je ziet waarom het mislukt.
+async function ghFail(r) {
+  const err = new Error(String(r.status));
+  try { err.detail = (await r.json()).message || ""; } catch (e) { err.detail = ""; }
+  return err;
+}
+
 async function putFile(path, text, message, sha) {
   const body = { message, content: b64encode(text), branch: BRANCH };
   if (sha) body.sha = sha;
   const r = await api(path, { method: "PUT", body });
-  if (!r.ok) throw new Error(String(r.status));
+  if (!r.ok) throw await ghFail(r);
 }
 
 const safeName = (id) => String(id).replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -107,7 +114,7 @@ export async function deleteFromGithub(id) {
   const f = await getFile(path);
   if (!f) return;
   const r = await api(path, { method: "DELETE", body: { message: `Verwijderd: ${entry ? entry.title : id}`, sha: f.sha, branch: BRANCH } });
-  if (!r.ok) throw new Error(String(r.status));
+  if (!r.ok) throw await ghFail(r);
 }
 
 // Terugvaloptie zonder token: één JSON-bestand downloaden, dat je zelf naar de repo kunt zetten.

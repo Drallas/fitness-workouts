@@ -123,7 +123,8 @@ document.querySelector(".wrap").addEventListener("click", (e) => {
       $("trmsg").textContent = t("tr.delGhDone");
       render();
     }).catch((err) => {
-      $("trmsg").textContent = t("tr.delGhErr", { code: /^\d+$/.test(err.message) ? err.message : "netwerk" });
+      const code = /^\d+$/.test(err.message) ? err.message : "netwerk";
+      $("trmsg").textContent = t("tr.delGhErr", { code }) + (err.detail ? " " + err.detail : "");
       render();
     });
     return;
